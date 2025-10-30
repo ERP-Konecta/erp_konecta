@@ -96,6 +96,10 @@ appsettings.*.json
 .vscode/
 .history/
 *.code-workspace
+.angular/
+cache/
+
+
 
 # System files
 .DS_Store
