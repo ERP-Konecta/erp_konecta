@@ -35,6 +35,10 @@ jobs:
               unzip sonar-scanner-cli-5.0.1.3006-linux.zip
               sudo mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
               echo "/opt/sonar-scanner/bin" >> $GITHUB_PATH
+      - name: Check SonarQube Connection
+        run: |
+           curl -f ${{ secrets.SONAR_HOST_URL }}/api/system/status || exit 1
+
 
       # 🧪 SonarQube Scan (Static Analysis)
       #  SonarQube Scan (SAST)
