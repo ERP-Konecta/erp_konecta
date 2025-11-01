@@ -26,3 +26,32 @@ jobs:
 
       - name: Build Angular App
         run: npm run build
+
+      # 🧪 SonarQube Scan (Static Analysis)
+      #  SonarQube Scan (SAST)
+      # - Runs only if SONAR_HOST_URL secret exists (so pipeline doesn’t fail now)
+      - name: SonarQube Scan
+        run: |
+          if [ -z "${{ secrets.SONAR_HOST_URL }}" ]; then 
+          echo "⚠️ SonarQube skipped - missing SONAR_HOST_URL secret"
+           else 
+           sonar-scanner \
+          -Dsonar.projectKey=erp-frontend \
+          -Dsonar.sources=. \
+          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          fi
+
+
+      #  Build Docker Image
+      - name: Build Docker image
+        run: docker build -t erp-frontend:latest .
+        working-directory: Frontend
+
+      # Trivy Security Scan (SCA)
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+          image-ref: 'erp-frontend:latest'
+          format: 'table'
+          exit-code: '0'
