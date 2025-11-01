@@ -40,16 +40,19 @@ jobs:
       #  SonarQube Scan (SAST)
       # - Runs only if SONAR_HOST_URL secret exists (so pipeline doesn’t fail now)
       - name: SonarQube Scan
+        env:
+           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          if [ -z "${{ secrets.SONAR_HOST_URL }}" ]; then 
-          echo "⚠️ SonarQube skipped - missing SONAR_HOST_URL secret"
-           else 
-           sonar-scanner \
-          -Dsonar.projectKey=erp-frontend \
-          -Dsonar.sources=. \
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-          fi
+              if [ -z "$SONAR_HOST_URL" ]; then
+               echo "⚠️ SonarQube skipped - missing SONAR_HOST_URL secret"
+               else
+               sonar-scanner \
+              -Dsonar.projectKey=erp-frontend \
+              -Dsonar.sources=. \
+              -Dsonar.host.url=$SONAR_HOST_URL \
+              -Dsonar.login=$SONAR_TOKEN
+              fi
 
 
       #  Build Docker Image
