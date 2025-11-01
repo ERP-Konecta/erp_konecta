@@ -27,6 +27,16 @@ jobs:
       - name: Build Angular App
         run: npm run build
 
+      - name: Install SonarScanner
+        run: |
+              sudo apt-get update
+              sudo apt-get install openjdk-17-jre -y
+              wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+              unzip sonar-scanner-cli-5.0.1.3006-linux.zip
+              sudo mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
+              echo "export PATH=$PATH:/opt/sonar-scanner/bin" >> $GITHUB_ENV
+
+
       # 🧪 SonarQube Scan (Static Analysis)
       #  SonarQube Scan (SAST)
       # - Runs only if SONAR_HOST_URL secret exists (so pipeline doesn’t fail now)
