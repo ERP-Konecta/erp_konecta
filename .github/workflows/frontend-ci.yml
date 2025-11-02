@@ -39,6 +39,13 @@ jobs:
         run: |
            curl -f ${{ secrets.SONAR_HOST_URL }}/api/system/status || exit 1
 
+      # 🧠 Cache SonarQube Scanner + Plugins
+      - name: Cache SonarQube files
+        uses: actions/cache@v3
+        with:
+         path: /opt/sonar-scanner/.sonar/cache
+         key: sonar-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
 
       # 🧪 SonarQube Scan (Static Analysis)
       #  SonarQube Scan (SAST)
