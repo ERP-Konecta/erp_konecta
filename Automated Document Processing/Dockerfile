@@ -18,7 +18,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code into the container
-COPY flask_invoice_api.py .
+COPY document_processor_flask_api.py .
 
 # The application is configured to listen on the Hugging Face default port 7860
 ENV PORT 7860
@@ -27,4 +27,4 @@ EXPOSE 7860
 # Define the command to run the application using gunicorn for production reliability
 # gunicorn is a WSGI HTTP Server that's more robust than Flask's built-in server.
 # The format is: gunicorn -w [workers] -b 0.0.0.0:[PORT] [module_name]:[flask_app_variable]
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:7860", "flask_invoice_api:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:7860", "document_processor_flask_api:app"]
