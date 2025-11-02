@@ -20,7 +20,12 @@ mongo_uri = os.getenv("MONGO_URI")
 # MongoDB setup
 client = MongoClient(mongo_uri)
 db = client["invoice_reader_db"]
-collection = db["invoices"]
+# Define collections for each document type
+collections = {
+    "invoice": db["invoices"],
+    "purchase_order": db["purchase_orders"],
+    "approval": db["approvals"]
+}
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -67,24 +72,48 @@ def extract_text_from_file(file_stream, filename):
     except Exception as e:
         raise Exception(f"Error extracting text: {str(e)}")
 
+# Function to detect document type
+def detect_document_type(text):
+    """Use Gemini to classify document type"""
+    classification_prompt = f"""
+    You are a document classifier. Based on the text below, classify the document type into one of the following categories:
+    - invoice
+    - purchase_order
+    - approval
+    Respond with ONLY one of these words and nothing else.
+
+    Document text:
+    {text[:3000]}  # limit text length for efficiency
+    """
+
+    response = llm.invoke(classification_prompt)
+    doc_type = response.content.strip().lower()
+
+    if "invoice" in doc_type:
+        return "invoice"
+    elif "purchase" in doc_type or "order" in doc_type:
+        return "purchase_order"
+    elif "approval" in doc_type:
+        return "approval"
+    else:
+        return "invoice"  # default fallback
+
 @app.route('/', methods=['GET'])
 def home():
     """Health check endpoint"""
     return jsonify({
         "status": "running",
-        "message": "Invoice Information Extractor API",
+        "message": "Document Processing API",
         "endpoints": {
-            "POST /api/extract": "Upload and extract invoice information",
-            "GET /api/invoices": "Get all invoices from database",
-            "GET /api/invoice/<id>": "Get specific invoice by MongoDB ID"
+            "POST /api/extract": "Upload and extract document info (invoice, PO, approval)",
+            "GET /api/<type>": "Get all documents by type (invoices, purchase_orders, approvals)"
         }
     }), 200
 
 @app.route('/api/extract', methods=['POST'])
-def extract_invoice():
-    """Extract information from uploaded invoice"""
+def extract_document():
+    """Extract information and classify document"""
     
-    # Check if file is present
     if 'file' not in request.files:
         return jsonify({"error": "No file provided"}), 400
     
@@ -97,60 +126,61 @@ def extract_invoice():
         return jsonify({"error": "Invalid file type. Allowed: png, jpg, jpeg, pdf"}), 400
     
     try:
-        # Secure the filename
         filename = secure_filename(file.filename)
-        
-        # Extract text from file
         extracted_text = extract_text_from_file(file.stream, filename)
         
         if not extracted_text:
             return jsonify({"error": "No text could be extracted from the file"}), 400
         
-        # Process with Gemini
+        # 🆕 Step 1: Detect document type
+        document_type = detect_document_type(extracted_text)
+        collection = collections[document_type]
+
+        # Step 2: Extract structured data
         message = f"""
-        system: You are an invoice information extractor who extracts information from text and converts it into a JSON format with proper structure and key-value pairs.
+        system: You are a document information extractor that converts text into structured JSON data.
         user: {extracted_text}
         """
-        
         response = llm.invoke(message)
-        result = str(response.content)
-        result = result.replace("```json", "").replace("```", "").strip()
-        
+        result = response.content.strip().replace("```json", "").replace("```", "")
         json_data = json.loads(result)
         
-        # Create embedding vector
+        # Step 3: Create embeddings
         embedding_vector = embedding_model.encode(extracted_text).tolist()
         
-        # Check for duplicates in MongoDB
-        existing_invoice = collection.find_one({
+        # Step 4: Check duplicates
+        existing_doc = collection.find_one({
             "$or": [
                 {"file_name": filename},
                 {"extracted_text": extracted_text}
             ]
         })
         
-        if existing_invoice:
+        if existing_doc:
             return jsonify({
-                "warning": "Invoice already exists in database",
-                "existing_id": str(existing_invoice["_id"]),
+                "warning": "Document already exists in database",
+                "existing_id": str(existing_doc["_id"]),
+                "document_type": document_type,
                 "extracted_text": extracted_text,
-                "invoice_data": json_data
+                "document_data": json_data
             }), 200
         
-        # Save to MongoDB
+        # Step 5: Store in the correct collection
         insert_result = collection.insert_one({
             "file_name": filename,
+            "document_type": document_type,
             "extracted_text": extracted_text,
-            "invoice_data": json_data,
+            "document_data": json_data,
             "embedding": embedding_vector
         })
         
         return jsonify({
             "success": True,
-            "message": "Invoice processed successfully",
+            "message": f"{document_type.replace('_', ' ').title()} processed successfully",
             "mongodb_id": str(insert_result.inserted_id),
+            "document_type": document_type,
             "extracted_text": extracted_text,
-            "invoice_data": json_data
+            "document_data": json_data
         }), 201
         
     except json.JSONDecodeError:
@@ -158,39 +188,24 @@ def extract_invoice():
     except Exception as e:
         return jsonify({"error": f"Processing error: {str(e)}"}), 500
 
-@app.route('/api/invoices', methods=['GET'])
-def get_all_invoices():
-    """Get all invoices from database"""
+@app.route('/api/<doc_type>', methods=['GET'])
+def get_all_documents(doc_type):
+    """Get all documents of a specific type"""
+    if doc_type not in collections:
+        return jsonify({"error": "Invalid document type"}), 400
+
     try:
-        invoices = list(collection.find({}, {"embedding": 0}))  # Exclude embeddings for performance
-        
-        # Convert ObjectId to string
-        for invoice in invoices:
-            invoice["_id"] = str(invoice["_id"])
+        docs = list(collections[doc_type].find({}, {"embedding": 0}))
+        for d in docs:
+            d["_id"] = str(d["_id"])
         
         return jsonify({
-            "count": len(invoices),
-            "invoices": invoices
+            "document_type": doc_type,
+            "count": len(docs),
+            "documents": docs
         }), 200
     except Exception as e:
         return jsonify({"error": f"Database error: {str(e)}"}), 500
-
-@app.route('/api/invoice/<invoice_id>', methods=['GET'])
-def get_invoice(invoice_id):
-    """Get specific invoice by ID"""
-    try:
-        from bson import ObjectId
-        
-        invoice = collection.find_one({"_id": ObjectId(invoice_id)}, {"embedding": 0})
-        
-        if not invoice:
-            return jsonify({"error": "Invoice not found"}), 404
-        
-        invoice["_id"] = str(invoice["_id"])
-        
-        return jsonify(invoice), 200
-    except Exception as e:
-        return jsonify({"error": f"Error retrieving invoice: {str(e)}"}), 500
 
 
 
