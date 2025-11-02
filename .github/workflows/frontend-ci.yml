@@ -43,20 +43,18 @@ jobs:
       # 🧪 SonarQube Scan (Static Analysis)
       #  SonarQube Scan (SAST)
       # - Runs only if SONAR_HOST_URL secret exists (so pipeline doesn’t fail now)
+      
+
       - name: SonarQube Scan
-        env:
-           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-              if [ -z "$SONAR_HOST_URL" ]; then
-               echo "⚠️ SonarQube skipped - missing SONAR_HOST_URL secret"
-               else
-               sonar-scanner \
-              -Dsonar.projectKey=erp-frontend \
-              -Dsonar.sources=. \
-              -Dsonar.host.url=$SONAR_HOST_URL \
-              -Dsonar.login=$SONAR_TOKEN
-              fi
+        uses: sonarsource/sonarqube-scan-action@v2
+        with:
+          projectBaseDir: Frontend
+        
+          args: >
+             -Dsonar.projectKey=erp-frontend
+             -Dsonar.sources=.
+             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
 
       #  Build Docker Image
@@ -71,3 +69,25 @@ jobs:
           image-ref: 'erp-frontend:latest'
           format: 'table'
           exit-code: '0'
+
+            # 📨 Send Report via Email
+      - name: Send Email Report
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "Frontend CI Report"
+          body: |
+            Hello Team,
+            
+            The latest CI run for Angular Frontend (branch: ${{ github.ref_name }}) has completed.
+            
+            ✅ Build Completed
+            ✅ SonarQube Scan Completed
+            ✅ Docker Image Built
+            ✅ Trivy Scan Completed
+            
+            Check the workflow run here: ${{ github.run_url }}
+          to: "aliashmawy595@gmail.com"
