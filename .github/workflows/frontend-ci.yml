@@ -50,14 +50,9 @@ jobs:
         with:
           projectBaseDir: Frontend
         
-          args: >
-             -Dsonar.projectKey=erp-frontend
-             -Dsonar.sources=.
-             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
-             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
-
-      #  Build Docker Image
+          args: "-Dsonar.projectKey=erp-frontend -Dsonar.sources=. -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}"
+      
+          #  Build Docker Image
       - name: Build Docker image
         run: docker build -t erp-frontend:latest .
         working-directory: Frontend
