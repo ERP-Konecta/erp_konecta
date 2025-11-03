@@ -45,8 +45,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run:
-         pysonar \
-            --sonar-project-key=python-project
+         pysonar -Dsonar.projectKey=python-project
 
 
       - name: SonarQube Quality Gate check
