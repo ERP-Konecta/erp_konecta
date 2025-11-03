@@ -99,7 +99,7 @@ jobs:
          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-         scanMetadataReportFile: .scannerwork/report-task.txt
+         scanMetadataReportFile: Frontend/.scannerwork/report-task.txt
          pollingTimeoutSec: 300
 
 
