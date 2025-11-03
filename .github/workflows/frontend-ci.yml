@@ -24,8 +24,13 @@ jobs:
       # - Scans for leaked credentials or API keys
       - name: Run Gitleaks (Secret Scan)
         uses: zricethezav/gitleaks-action@v2
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
         with:
-          args: detect --source . --report-path gitleaks-report.json
+         scan-dir: .
+         report-format: json
+         report-path: gitleaks-report.json
+
 
       # Setup Node.js for Angular Build
       - name: Setup Node.js
