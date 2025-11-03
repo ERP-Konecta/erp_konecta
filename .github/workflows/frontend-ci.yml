@@ -49,10 +49,11 @@ jobs:
       # - Used for Quality Gates + Code Smells + Security Hotspots
       # ⚡ Add Cache for SonarScanner binaries to speed up installation
       - name: Cache SonarScanner binary
+        id: sonar-bin-cache
         uses: actions/cache@v3
         with:
           path: /opt/sonar-scanner
-          key: sonar-binary-${{ runner.os }}
+          key: sonar-binary-${{ runner.os }}-v3
 
       - name: Install SonarScanner
         if: steps.cache.outputs.cache-hit != 'true'
@@ -76,9 +77,14 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.sonar/cache
-          key: sonar-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}-v2
+          key: sonar-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}-v3
 
-          
+      - name: Clean possible corrupted sonar cache
+        run: |
+            echo "Removing any old Sonar temp files..."
+            rm -rf /opt/sonar-scanner/.sonar/_tmp || true
+            rm -rf ~/.sonar/cache/_tmp || true
+  
 
       # SonarQube Analysis (Static App Security Testing)
       - name: SonarQube Scan (SAST)
