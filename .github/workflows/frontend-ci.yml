@@ -130,6 +130,15 @@ jobs:
       - name: Run frontend container
         run: docker run -d -p 8080:80 --name erp-frontend-container erp-frontend:latest
 
+      #  Verify the container is running and reachable
+      - name: Verify Docker container is running
+        run: |
+          echo " Checking running containers..."
+          docker ps
+          echo " Testing if frontend is reachable..."
+          sleep 5
+          curl -v http://localhost:8080 || (echo " App not reachable on port 8080" && exit 1)
+
       # Trivy Security Scan (SCA)
       # Scans Docker image for known vulnerabilities (CVEs)
       - name: Scan Docker image with Trivy
