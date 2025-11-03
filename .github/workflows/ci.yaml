@@ -43,7 +43,7 @@ jobs:
         working-directory: "Automated Document Processing"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_PYTHON }}
         run: |
             pysonar -Dsonar.projectKey=python-project
             ls -R
