@@ -1,0 +1,58 @@
+name: AI-Python CI
+
+on:
+  push:
+    branches: [ai-team-work]
+  pull_request:
+    branches: [main]
+
+  workflow_dispatch: 
+
+jobs:
+
+  sonarqube:
+    name: Inspect - SAST
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install pysonar
+        working-directory: "Automated Document Processing"
+        run: pip install pysonar
+
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+
+      - name: Build and analyze
+        working-directory: "Automated Document Processing"
+        run:
+         pysonar \
+            --sonar-host-url= ${{ secrets.SONAR_HOST_URL }} \
+            --sonar-token= ${{ secrets.SONAR_TOKEN }} \
+            --sonar-project-key=python-project
+
+
+      - name: SonarQube Quality Gate check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   
+        timeout-minutes: 5     
+        with:
+          scanMetadataReportFile: "Automated Document Processing/target/sonar/report-task.txt"
