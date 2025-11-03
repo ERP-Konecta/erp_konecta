@@ -46,7 +46,6 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_PYTHON }}
         run: |
             pysonar -Dsonar.projectKey=python-project
-            ls -aR
 
 
       - name: SonarQube Quality Gate check
@@ -56,4 +55,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}   
         timeout-minutes: 5     
         with:
-          scanMetadataReportFile: "Automated Document Processing/target/sonar/report-task.txt"
+          scanMetadataReportFile: "Automated Document Processing/.sonar/report-task.txt"
