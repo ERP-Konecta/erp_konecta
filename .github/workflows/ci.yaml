@@ -41,10 +41,11 @@ jobs:
 
       - name: Build and analyze
         working-directory: "Automated Document Processing"
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run:
          pysonar \
-            --sonar-host-url= ${{ secrets.SONAR_HOST_URL }} \
-            --sonar-token= ${{ secrets.SONAR_TOKEN_PYTHON }} \
             --sonar-project-key=python-project
 
 
