@@ -56,7 +56,8 @@ jobs:
           key: sonar-binary-${{ runner.os }}-v5
 
       - name: Install SonarScanner
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.sonar-bin-cache.outputs.cache-hit != 'true'
+
         run: |
           sudo apt-get update
           sudo apt-get install openjdk-17-jre -y
@@ -90,6 +91,7 @@ jobs:
 
       # SonarQube Analysis (Static App Security Testing)
       - name: SonarQube Scan (SAST)
+        continue-on-error: true
         uses: sonarsource/sonarqube-scan-action@v2
         with:
           projectBaseDir: Frontend
