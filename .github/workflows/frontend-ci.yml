@@ -95,10 +95,13 @@ jobs:
       # - Stops the pipeline if code quality doesn't meet the gate
       - name: SonarQube Quality Gate
         uses: sonarsource/sonarqube-quality-gate-action@master
+        env:
+         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          host-url: ${{ secrets.SONAR_HOST_URL }}
-          login: ${{ secrets.SONAR_TOKEN }}
-        timeout-minutes: 5
+         scanMetadataReportFile: .scannerwork/report-task.txt
+         pollingTimeoutSec: 300
+
 
       # OWASP Dependency Check
       # - Detects vulnerable libraries in Angular project
