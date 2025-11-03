@@ -1,4 +1,4 @@
-name: Frontend CI (Angular)
+name: Frontend CI/CD (Angular + Security + Quality Gates)
 
 on:
   push:
@@ -7,64 +7,100 @@ on:
     branches: [main]
 
 jobs:
-  build:
+  build-and-scan:
     runs-on: ubuntu-latest
+
     defaults:
       run:
-        working-directory: Frontend  
+        working-directory: Frontend
+
     steps:
+      # Checkout the Code
+      # - Always the first step
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # Secret Detection — Gitleaks
+      # - Scans for leaked credentials or API keys
+      - name: Run Gitleaks (Secret Scan)
+        uses: zricethezav/gitleaks-action@v2
+        with:
+          args: detect --source . --report-path gitleaks-report.json
+
+      # Setup Node.js for Angular Build
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
+      # Install Frontend Dependencies
       - name: Install dependencies
         run: npm install
 
+      # Build Angular App
       - name: Build Angular App
         run: npm run build
 
+      # Install SonarScanner (Static Code Analysis)
+      # - Used for Quality Gates + Code Smells + Security Hotspots
       - name: Install SonarScanner
         run: |
-              sudo apt-get update
-              sudo apt-get install openjdk-17-jre -y
-              wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
-              unzip sonar-scanner-cli-5.0.1.3006-linux.zip
-              sudo mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
-              echo "/opt/sonar-scanner/bin" >> $GITHUB_PATH
+          sudo apt-get update
+          sudo apt-get install openjdk-17-jre -y
+          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip
+          unzip sonar-scanner-cli-5.0.1.3006-linux.zip
+          sudo mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
+          echo "/opt/sonar-scanner/bin" >> $GITHUB_PATH
+
+      # Check SonarQube Connection
       - name: Check SonarQube Connection
         run: |
-           curl -f ${{ secrets.SONAR_HOST_URL }}/api/system/status || exit 1
+          curl -f ${{ secrets.SONAR_HOST_URL }}/api/system/status || exit 1
 
-      # 🧠 Cache SonarQube Scanner + Plugins
+      # Cache SonarQube Plugins and Rules
+      # - Prevents re-downloading every run → saves time
       - name: Cache SonarQube files
         uses: actions/cache@v3
         with:
-         path: ~/.sonar/cache
-         key: sonar-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          path: ~/.sonar/cache
+          key: sonar-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
 
-
-      # 🧪 SonarQube Scan (Static Analysis)
-      #  SonarQube Scan (SAST)
-      # - Runs only if SONAR_HOST_URL secret exists (so pipeline doesn’t fail now)
-      
-
-      - name: SonarQube Scan
+      # SonarQube Analysis (Static App Security Testing)
+      - name: SonarQube Scan (SAST)
         uses: sonarsource/sonarqube-scan-action@v2
         with:
           projectBaseDir: Frontend
-        
-          args: "-Dsonar.projectKey=erp-frontend -Dsonar.sources=. -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}"
-      
-          #  Build Docker Image
+          args: >
+            -Dsonar.projectKey=erp-frontend
+            -Dsonar.sources=.
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+      # SonarQube Quality Gate Check
+      # - Stops the pipeline if code quality doesn't meet the gate
+      - name: SonarQube Quality Gate
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        with:
+          host-url: ${{ secrets.SONAR_HOST_URL }}
+          login: ${{ secrets.SONAR_TOKEN }}
+        timeout-minutes: 5
+
+      # OWASP Dependency Check
+      # - Detects vulnerable libraries in Angular project
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'Frontend'
+          path: '.'
+          format: 'HTML'
+
+      # Build Docker Image
       - name: Build Docker image
         run: docker build -t erp-frontend:latest .
         working-directory: Frontend
 
       # Trivy Security Scan (SCA)
+      # Scans Docker image for known vulnerabilities (CVEs)
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.20.0
         with:
@@ -72,26 +108,26 @@ jobs:
           format: 'table'
           exit-code: '0'
 
-            # 📨 Send Report via Email
-      - name: Send Email Report
-        uses: dawidd6/action-send-mail@v3
+      # OWASP ZAP Baseline Scan (DAST)
+      # Dynamic scan simulating real-world attacks
+      - name: Run OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.9.0
         with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          from: ${{ secrets.EMAIL_USERNAME }}        
-          to: aliashmawy595@gmail.com
-          subject: "Frontend CI Report"
-          body: |
-            Hello Team,
-            
-            The latest CI run for Angular Frontend (branch: ${{ github.ref_name }}) has completed.
-            
-            ✅ Build Completed
-            ✅ SonarQube Scan Completed
-            ✅ Docker Image Built
-            ✅ Trivy Scan Completed
-            
-            Check the workflow run here: ${{ github.run_url }}
-         
+          target: ${{ secrets.SONAR_HOST_URL }}
+          cmd_options: '-t 5m -I'
+
+      # Upload Reports as Artifacts
+      # Store reports (Sonar, ZAP, Trivy, Gitleaks, etc.)
+      - name: Upload Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-security-reports
+          path: |
+            Frontend/gitleaks-report.json
+            Frontend/dependency-check-report.html
+
+      # Notify Team on Slack (Optional)
+      #  Sends build summary to Slack channel (if webhook configured)
+     
+     
+        
