@@ -44,7 +44,7 @@ jobs:
         run:
          pysonar \
             --sonar-host-url= ${{ secrets.SONAR_HOST_URL }} \
-            --sonar-token= ${{ secrets.SONAR_TOKEN }} \
+            --sonar-token= ${{ secrets.SONAR_TOKEN_PYTHON }} \
             --sonar-project-key=python-project
 
 
