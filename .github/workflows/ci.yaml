@@ -52,7 +52,7 @@ jobs:
         uses: sonarsource/sonarqube-quality-gate-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}   
         timeout-minutes: 5     
         with:
           scanMetadataReportFile: "Automated Document Processing/target/sonar/report-task.txt"
