@@ -135,10 +135,19 @@ jobs:
         run: |
           echo " Checking running containers..."
           docker ps
-          echo " Testing if frontend is reachable..."
-          sleep 5
-          curl -v http://localhost:8080 || (echo " App not reachable on port 8080" && exit 1)
+          echo "Waiting for frontend to be reachable on port 8080..."
+          for i in {1..20}; do
+                status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080)
+             if [ "$status" -eq 200 ]; then
+               echo "Frontend is up!"
+               exit 0
+             fi
+          echo "Not ready yet... retrying ($i/20)"
+           sleep 3
+             done
 
+           echo "Frontend not reachable after 20 attempts."
+           exit 1
       # Trivy Security Scan (SCA)
       # Scans Docker image for known vulnerabilities (CVEs)
       - name: Scan Docker image with Trivy
