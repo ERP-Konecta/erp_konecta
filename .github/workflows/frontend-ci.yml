@@ -135,19 +135,10 @@ jobs:
         run: |
           echo " Checking running containers..."
           docker ps
-          echo "Waiting for frontend to be reachable on port 8080..."
-          for i in {1..20}; do
-                status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080)
-             if [ "$status" -eq 200 ]; then
-               echo "Frontend is up!"
-               exit 0
-             fi
-          echo "Not ready yet... retrying ($i/20)"
-           sleep 3
-             done
+          echo " Testing if frontend is reachable..."
+          sleep 5
+          curl -v http://localhost:8080 || (echo " App not reachable on port 8080" && exit 1)
 
-           echo "Frontend not reachable after 20 attempts."
-           exit 1
       # Trivy Security Scan (SCA)
       # Scans Docker image for known vulnerabilities (CVEs)
       - name: Scan Docker image with Trivy
@@ -163,8 +154,8 @@ jobs:
       - name: Run OWASP ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.9.0
         with:
-          target: ${{ secrets.APP_URL }}
-          cmd_options: '-t 5m -I'
+         target: http://127.0.0.1:8080
+         cmd_options: '-t 5m -I'
 
       # Upload Reports as Artifacts
       # Store reports (Sonar, ZAP, Trivy, Gitleaks, etc.)
