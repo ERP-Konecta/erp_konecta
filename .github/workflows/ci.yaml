@@ -26,9 +26,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
           GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
-
-        with:
-          args: detect --source="Automated Document Processing/" --no-banner
+          GITLEAKS_SCAN_PATH: "Automated Document Processing/"
 
   sonarqube:
     name: Inspect - SAST
