@@ -67,13 +67,7 @@ jobs:
           echo "/opt/sonar-scanner/bin" >> $GITHUB_PATH
 
 
-      - name: Clean possible corrupted sonar cache
-        run: |
-          echo "🧹 Cleaning old SonarQube caches..."
-          rm -rf /opt/sonar-scanner/.sonar/cache || true
-          rm -rf /opt/sonar-scanner/.sonar/_tmp || true
-          rm -rf ~/.sonar/cache || true
-          mkdir -p ~/.sonar/cache
+      
 
       # Check SonarQube Connection
       - name: Check SonarQube Connection
@@ -153,7 +147,7 @@ jobs:
           exit-code: '0'
 
 
-            # OWASP ZAP Baseline Scan (DAST)
+            # OWASP ZAP Baseline Scan 
       - name: Run OWASP ZAP Baseline Scan (manual)
         run: |
           echo "🚀 Running OWASP ZAP Baseline Scan..."
@@ -177,9 +171,3 @@ jobs:
             gitleaks-report.json
             dependency-check-report.html
 
-
-      # Notify Team on Slack (Optional)
-      #  Sends build summary to Slack channel (if webhook configured)
-     
-     
-        
