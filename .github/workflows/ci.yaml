@@ -10,6 +10,25 @@ on:
 
 jobs:
 
+  gitleaks:
+    name: Secret Detection (GitLeaks)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run GitLeaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
+
+        with:
+          args: detect --source="Automated Document Processing/" --no-banner
+
   sonarqube:
     name: Inspect - SAST
     runs-on: ubuntu-latest
