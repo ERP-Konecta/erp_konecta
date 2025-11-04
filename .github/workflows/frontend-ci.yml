@@ -126,9 +126,13 @@ jobs:
       - name: Build Docker image
         run: docker build -t erp-frontend:latest .
         working-directory: Frontend
+
+      - name: Create Docker network
+        run: docker network create erp-network || true
+
         # Run frontend container
       - name: Run frontend container
-        run: docker run -d -p 8080:80 --name erp-frontend-container erp-frontend:latest
+        run: docker run -d --network erp-network -p 8080:80 --name erp-frontend-container erp-frontend:latest
 
       #  Verify the container is running and reachable
       - name: Verify Docker container is running
@@ -156,6 +160,8 @@ jobs:
         with:
          target: "http://erp-frontend-container:80"
          cmd_options: '-t 5m -I'
+        env:
+         DOCKER_NETWORK: erp-network
 
       # Upload Reports as Artifacts
       # Store reports (Sonar, ZAP, Trivy, Gitleaks, etc.)
