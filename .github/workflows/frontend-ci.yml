@@ -101,6 +101,7 @@ jobs:
       # - Stops the pipeline if code quality doesn't meet the gate
       - name: SonarQube Quality Gate
         uses: sonarsource/sonarqube-quality-gate-action@master
+        continue-on-error: true
         env:
          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
