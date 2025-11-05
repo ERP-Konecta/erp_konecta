@@ -91,7 +91,7 @@ jobs:
           projectBaseDir: Frontend
           args: >
             -Dsonar.projectKey=erp-frontend
-            -Dsonar.sources=src
+            -Dsonar.sources=.
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
