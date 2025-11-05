@@ -26,7 +26,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
           GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
-          GITLEAKS_SCAN_PATH: "Automated Document Processing/"
+          GITLEAKS_SCAN_PATH: "Automated_Document_Processing/"
 
   sonarqube:
     name: Inspect - SAST
@@ -45,7 +45,7 @@ jobs:
           cache: 'pip'
 
       - name: Install pysonar
-        working-directory: "Automated Document Processing"
+        working-directory: "Automated_Document_Processing"
         run: pip install pysonar
 
 
@@ -58,7 +58,7 @@ jobs:
 
 
       - name: Build and analyze
-        working-directory: "Automated Document Processing"
+        working-directory: "Automated_Document_Processing"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_PYTHON }}
@@ -73,7 +73,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}   
         timeout-minutes: 5     
         with:
-          scanMetadataReportFile: "Automated Document Processing/.sonar/report-task.txt"
+          scanMetadataReportFile: "Automated_Document_Processing/.sonar/report-task.txt"
 
   depchecktest:
     runs-on: ubuntu-latest
