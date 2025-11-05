@@ -27,6 +27,7 @@ COPY --from=build /app/dist/erp-frontend /usr/share/nginx/html
 EXPOSE 80
 
 # Use a non-root user for security
+RUN chmod -R 755 /usr/share/nginx/html
 USER 101
 
 # Run nginx

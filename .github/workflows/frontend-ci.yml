@@ -42,10 +42,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-        # INstall Angular App
-      - name: Install Angular CLI
-        run: npm install -g @angular/cli
-
       # Build Angular App
       - name: Build Angular App
         run: npm run build
@@ -141,7 +137,7 @@ jobs:
           echo " Checking running containers..."
           docker ps
           echo " Testing if frontend is reachable..."
-          sleep 30
+          sleep 5
           curl -v http://localhost:8080 || (echo " App not reachable on port 8080" && exit 1)
 
       # Trivy Security Scan (SCA)
