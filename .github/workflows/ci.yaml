@@ -45,7 +45,6 @@ jobs:
           cache: 'pip'
 
       - name: Install pysonar
-        working-directory: "Automated_Document_Processing"
         run: pip install pysonar
 
 
@@ -74,7 +73,30 @@ jobs:
         timeout-minutes: 5     
         with:
           scanMetadataReportFile: "Automated_Document_Processing/.sonar/report-task.txt"
+  
 
+  safety:
+    name: SCA-Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+
+      - name: Set up python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install safety
+        run: pip install safety
+
+      - name: run Test
+        working-directory: "Automated_Document_Processing"
+        run: safety check -r requirements --bare
   depchecktest:
     runs-on: ubuntu-latest
     name: depecheck_test
@@ -94,7 +116,7 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@main
         id: Depcheck
         with:
-          project: 'test'
+          project: 'Automated_Document_Processing'
           path: './Automated_Document_Processing'
           format: 'HTML'
           out: 'reports'
