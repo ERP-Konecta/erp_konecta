@@ -124,6 +124,13 @@ jobs:
         with:
            name: dependency-check-report
            path: ${{ github.workspace }}/reports
+
+      - name: List report files
+        if: always()
+        run: |
+          echo "Checking reports directory..."
+          ls -la reports/ || echo "Reports directory not found"
+          find . -name "*.sarif" -o -name "*.html" -o -name "*.json" || echo "No report files found"
       
       - name: Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
