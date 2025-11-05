@@ -95,7 +95,7 @@ jobs:
         id: Depcheck
         with:
           project: 'test'
-          path: "./Automated Document Processing"
+          path: "./Automated\ Document\ Processing"
           format: 'HTML'
           out: 'reports'
           args: >
