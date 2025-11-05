@@ -19,7 +19,8 @@ jobs:
       # - Always the first step
       - name: Checkout code
         uses: actions/checkout@v4
-
+        with:
+          fetch-depth: 0
       # Secret Detection — Gitleaks
       # - Scans for leaked credentials or API keys
       - name: Run Gitleaks (Secret Scan)
@@ -93,7 +94,8 @@ jobs:
             -Dsonar.projectKey=erp-frontend
             -Dsonar.sources=.
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+
 
       # SonarQube Quality Gate Check
       # - Stops the pipeline if code quality doesn't meet the gate
