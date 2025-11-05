@@ -47,5 +47,8 @@
       }
     }
   },
-  "defaultProject": "erp-frontend"
+  "defaultProject": "erp-frontend",
+  "cli": {
+    "analytics": "65f6dd00-97ba-4429-8bf7-c56219ecc7bb"
+  }
 }
