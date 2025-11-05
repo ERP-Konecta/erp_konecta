@@ -137,7 +137,7 @@ jobs:
           echo " Checking running containers..."
           docker ps
           echo " Testing if frontend is reachable..."
-          sleep 5
+          sleep 30
           curl -v http://localhost:8080 || (echo " App not reachable on port 8080" && exit 1)
 
       # Trivy Security Scan (SCA)
