@@ -111,7 +111,7 @@ jobs:
         with:
           project: 'Automated_Document_Processing'
           path: './Automated_Document_Processing'
-          format: 'HTML,SARIF'
+          format: 'ALL'
           out: 'reports'
           args: >
             --failOnCVSS 7
