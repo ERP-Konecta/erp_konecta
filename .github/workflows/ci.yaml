@@ -117,8 +117,6 @@ jobs:
             --failOnCVSS 7
             --enableRetired
             --enableExperimental
-            --scan '**/requirements.txt'
-            --scan '**/*.py'
       
       - name: Upload Dependency-Check report
         if: always()
