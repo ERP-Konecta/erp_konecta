@@ -74,3 +74,36 @@ jobs:
         timeout-minutes: 5     
         with:
           scanMetadataReportFile: "Automated Document Processing/.sonar/report-task.txt"
+
+  depchecktest:
+    runs-on: ubuntu-latest
+    name: depecheck_test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Dependency-Check database
+        uses: actions/cache@v4
+        with:
+          path: ~/.dependency-check
+          key: depcheck-data-${{ runner.os }}-${{ hashFiles('shipping/pom.xml') }}
+          restore-keys: |
+            depcheck-data-${{ runner.os }}-
+
+      - name: Depcheck
+        uses: dependency-check/Dependency-Check_Action@main
+        id: Depcheck
+        with:
+          project: 'test'
+          path: './Automated Document Processing'
+          format: 'HTML'
+          out: 'reports'
+          args: >
+            --failOnCVSS 7
+            --enableRetired
+      - name: Upload Test results
+        if: always()
+        uses: actions/upload-artifact@master
+        with:
+           name: Depcheck report
+           path: ${{github.workspace}}/reports        
