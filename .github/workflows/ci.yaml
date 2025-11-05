@@ -96,7 +96,7 @@ jobs:
 
       - name: run Test
         working-directory: "Automated_Document_Processing"
-        run: safety check -r requirements --bare
+        run: safety check -r requirements.txt --bare
   depchecktest:
     runs-on: ubuntu-latest
     name: depecheck_test
