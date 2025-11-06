@@ -7,7 +7,7 @@ WORKDIR /app
 # Install system dependencies required for OCR (Tesseract) and PDF handling (pdfplumber dependencies)
 # We need tesseract-ocr and necessary libraries for handling images and PDFs
 RUN apt-get update && \
-    apt-get install -y libpoppler-cpp-dev libtesseract-dev poppler-utils tesseract-ocr \
+    apt-get install -y tesseract-ocr libtesseract-dev libpoppler-cpp-dev poppler-utils \
     # Clean up to keep the image small
     && rm -rf /var/lib/apt/lists/*
 
