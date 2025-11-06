@@ -7,7 +7,7 @@ on:
     paths:
       - 'AI/erp_chatbot/Dockerfile'
       - 'AI/erp_chatbot/*.py'
-      - 'AI/erp_chatbot/requirements.txt'
+      - 'AI/erp_chatbot/requirements.txt' 
   pull_request:
     branches: [main]
 
