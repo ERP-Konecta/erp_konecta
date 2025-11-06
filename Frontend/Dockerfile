@@ -4,14 +4,8 @@ WORKDIR /app
 
 # Copy only dependency files for better caching
 COPY package*.json ./
-
-# Install dependencies safely (avoid postinstall scripts)
 RUN npm ci --ignore-scripts
-
-# Copy the rest of the application (filtered by .dockerignore)
 COPY . .
-
-# Build Angular project
 RUN npm run build
 
 # Stage 2 - Serve using Nginx
@@ -20,15 +14,19 @@ FROM nginx:alpine
 # Remove default nginx static files
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy build output from the previous stage
+# Copy build output
 COPY --from=build /app/dist/erp-frontend /usr/share/nginx/html
 
-# Expose port 80
-EXPOSE 80
+# Prepare directories and permissions
+RUN mkdir -p /var/cache/nginx /var/run /var/log/nginx /tmp && \
+    chown -R 101:101 /usr/share/nginx/html /var/cache/nginx /var/run /var/log/nginx /tmp && \
+    chmod -R 755 /usr/share/nginx/html /var/cache/nginx /var/run /var/log/nginx /tmp
 
-# Use a non-root user for security
-RUN chmod -R 755 /usr/share/nginx/html
+# Remove duplicate PID directive
+RUN sed -i '/pid\s\+\/run\/nginx.pid;/d' /etc/nginx/nginx.conf
+
+EXPOSE 80
 USER 101
 
-# Run nginx
-CMD ["nginx", "-g", "daemon off;"]
+# ✅ Force nginx to use /tmp/nginx.pid instead (accessible to non-root)
+CMD ["nginx", "-g", "pid /tmp/nginx.pid; daemon off;"]
