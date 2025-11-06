@@ -57,7 +57,7 @@ jobs:
 
 
       - name: Build and analyze
-        working-directory: "AI"
+        working-directory: "AI/automated_document_processing"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_PYTHON }}
