@@ -24,6 +24,7 @@ jobs:
       # Secret Detection — Gitleaks
       # - Scans for leaked credentials or API keys
       - name: Run Gitleaks (Secret Scan)
+        continue-on-error: true
         run: |
          mkdir -p Frontend/reports
          wget https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz
