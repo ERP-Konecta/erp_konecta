@@ -171,8 +171,10 @@ jobs:
         with:
           name: frontend-security-reports
           path: |
-            gitleaks-report.json
-            dependency-check-report.html
+            Frontend/gitleaks-report.json
+            Frontend/dependency-check-report.html
+            Frontend/report_html.html
+
 
            # Send Report via Email
       - name: Send report via email
