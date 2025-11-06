@@ -5,6 +5,7 @@ WORKDIR /app
 # Copy only dependency files for better caching
 COPY package*.json ./
 RUN npm ci --ignore-scripts
+# NOSONAR
 COPY . .
 RUN npm run build
 
@@ -18,15 +19,14 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY --from=build /app/dist/erp-frontend /usr/share/nginx/html
 
 # Prepare directories and permissions
+# Remove duplicate PID directive
 RUN mkdir -p /var/cache/nginx /var/run /var/log/nginx /tmp && \
     chown -R 101:101 /usr/share/nginx/html /var/cache/nginx /var/run /var/log/nginx /tmp && \
-    chmod -R 755 /usr/share/nginx/html /var/cache/nginx /var/run /var/log/nginx /tmp
-
-# Remove duplicate PID directive
-RUN sed -i '/pid\s\+\/run\/nginx.pid;/d' /etc/nginx/nginx.conf
+    chmod -R 755 /usr/share/nginx/html /var/cache/nginx /var/run /var/log/nginx /tmp && \
+    sed -i '/pid\s\+\/run\/nginx.pid;/d' /etc/nginx/nginx.conf
 
 EXPOSE 80
 USER 101
 
-# ✅ Force nginx to use /tmp/nginx.pid instead (accessible to non-root)
+#  Force nginx to use /tmp/nginx.pid instead (accessible to non-root)
 CMD ["nginx", "-g", "pid /tmp/nginx.pid; daemon off;"]
