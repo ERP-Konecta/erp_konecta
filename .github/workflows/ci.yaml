@@ -155,4 +155,4 @@ jobs:
         with:
           push: true
           context: ./AI/automated_document_processing
-          tags: ${{ var.DOCKERHUB_USERNAME }}/doc-processing:latest
+          tags: ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:latest
