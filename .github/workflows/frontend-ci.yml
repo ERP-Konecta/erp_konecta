@@ -174,3 +174,23 @@ jobs:
             gitleaks-report.json
             dependency-check-report.html
 
+           # Send Report via Email
+      - name: Send report via email
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "Frontend Security & Code Quality Report - ${{ github.ref_name }}"
+          to: "aliashmawy595@gmail.com , beshooseha71@gmail.com "
+          from: "Konecta CI/CD <${{ secrets.EMAIL_USERNAME }}>"
+          body: |
+            Hi team 👋,
+            The CI/CD pipeline has completed successfully.
+            Attached are the latest code analysis reports (SonarQube, Trivy, ZAP, etc).
+          attachments: |
+            gitleaks-report.json
+            dependency-check-report.html
+            report_html.html
