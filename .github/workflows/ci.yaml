@@ -154,5 +154,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           push: true
-          context: ./AI/automated_document_processing/
+          context: ./AI/automated_document_processing
+          file: ./AI/automated_document_processing/Dockerfile
           tags: ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:latest
