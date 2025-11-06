@@ -26,7 +26,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
           GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
-          GITLEAKS_SCAN_PATH: "Automated_Document_Processing/"
+          GITLEAKS_SCAN_PATH: "AI/"
 
   sonarqube:
     name: Inspect - SAST
@@ -57,7 +57,7 @@ jobs:
 
 
       - name: Build and analyze
-        working-directory: "Automated_Document_Processing"
+        working-directory: "AI"
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_PYTHON }}
@@ -72,7 +72,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}   
         timeout-minutes: 5     
         with:
-          scanMetadataReportFile: "Automated_Document_Processing/.sonar/report-task.txt"
+          scanMetadataReportFile: "AI/.sonar/report-task.txt"
 
   depchecktest:
     runs-on: ubuntu-latest
@@ -99,18 +99,18 @@ jobs:
         with:
           python-version: '3.10'
           cache: 'pip'
-          cache-dependency-path: 'Automated_Document_Processing/requirements.txt'
+          cache-dependency-path: 'AI/requirements.txt'
 
       - name: Install dependencies
-        working-directory: "Automated_Document_Processing"
+        working-directory: "AI"
         run: pip install -r requirements.txt
 
       - name: Run OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@main
         id: Depcheck
         with:
-          project: 'Automated_Document_Processing'
-          path: './Automated_Document_Processing'
+          project: 'AI'
+          path: './AI'
           format: 'ALL'
           out: 'reports'
           args: >
@@ -130,4 +130,29 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: reports/dependency-check-report.sarif        
+          sarif_file: reports/dependency-check-report.sarif
+
+
+  build-push:
+    runs-on: ubuntu-latest
+    needs: [gitleaks,sonarqube,depchecktest]
+    steps:
+      -
+        name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ var.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          context: ./AI/automated_document_processing
+          tags: ${{ var.DOCKERHUB_USERNAME }}/doc-processing:latest
