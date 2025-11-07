@@ -1,4 +1,4 @@
-name: Doc-Processing CI
+name: Chatbot CI
 
 on:
   push:
@@ -140,6 +140,9 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }} ./AI/erp_chatbot
+
+      - name: check image size
+        run: docker image ls
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
