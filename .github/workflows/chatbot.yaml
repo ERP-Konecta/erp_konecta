@@ -56,7 +56,7 @@ jobs:
         with:
           projectBaseDir: AI/erp_chatbot
           args: >
-            -Dsonar.projectKey=python-project
+            -Dsonar.projectKey=chatbot
             -Dsonar.sources=.
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_PYTHON }}
             -Dsonar.token=${{ secrets.SONAR_TOKEN_PYTHON }}
