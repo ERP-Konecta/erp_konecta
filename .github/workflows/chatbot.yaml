@@ -4,8 +4,9 @@ on:
   push:
     branches: [ai-team-work]
 
-    # paths:
-    #   - 'AI/erp_chatbot/Dockerfile'
+    paths:
+      - 'AI/erp_chatbot/*'
+      - '.github/workflows/chatbot.yaml'
     #   - 'AI/erp_chatbot/*.py'
     #   - 'AI/erp_chatbot/requirements.txt'
   pull_request:
