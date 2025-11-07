@@ -61,13 +61,25 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
 
-      - name: Build and analyze
-        working-directory: "AI/automated_document_processing"
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_PYTHON }}
-        run: |
-            pysonar -Dsonar.projectKey=python-project -Dsonar.verbose=true
+      # - name: Build and analyze
+      #   working-directory: "AI/automated_document_processing"
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}
+      #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_PYTHON }}
+      #   run: |
+      #       pysonar -Dsonar.projectKey=python-project -Dsonar.verbose=true
+
+      - name: SonarQube Scan (SAST)
+        continue-on-error: true
+        uses: sonarsource/sonarqube-scan-action@v2
+        with:
+          projectBaseDir: AI/automated_document_processing
+          args: >
+            -Dsonar.projectKey=python-project
+            -Dsonar.sources=src
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_PYTHON }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN_PYTHON }}
+            -Dsonar.verbose=true
 
 
       - name: SonarQube Quality Gate check
