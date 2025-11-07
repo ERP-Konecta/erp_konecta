@@ -76,7 +76,7 @@ jobs:
           projectBaseDir: AI/automated_document_processing
           args: >
             -Dsonar.projectKey=python-project
-            -Dsonar.sources=src
+            -Dsonar.sources=.
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_PYTHON }}
             -Dsonar.token=${{ secrets.SONAR_TOKEN_PYTHON }}
             -Dsonar.verbose=true
