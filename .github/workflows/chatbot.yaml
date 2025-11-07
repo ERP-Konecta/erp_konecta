@@ -91,16 +91,6 @@ jobs:
           restore-keys: |
             depcheck-data-${{ runner.os }}-
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
-          cache-dependency-path: 'AI/erp_chatbot/**/requirements.txt'
-
-      - name: Install dependencies
-        working-directory: "AI/erp_chatbot"
-        run: pip install -r requirements.txt
 
       - name: Run OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@main
