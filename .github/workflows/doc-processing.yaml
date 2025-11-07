@@ -42,32 +42,12 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
-
-      - name: Set up python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
-
-      - name: Install pysonar
-        run: pip install pysonar
-
-
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
-
-
-      # - name: Build and analyze
-      #   working-directory: "AI/automated_document_processing"
-      #   env:
-      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}
-      #     SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_PYTHON }}
-      #   run: |
-      #       pysonar -Dsonar.projectKey=python-project -Dsonar.verbose=true
 
       - name: SonarQube Scan (SAST)
         continue-on-error: true
@@ -89,7 +69,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}   
         timeout-minutes: 5     
         with:
-          scanMetadataReportFile: "AI/automated_document_processing/.sonar/report-task.txt"
+          scanMetadataReportFile: ".sonar/report-task.txt"
 
   depchecktest:
     runs-on: ubuntu-latest
