@@ -24,16 +24,11 @@ jobs:
       # Secret Detection — Gitleaks
       # - Scans for leaked credentials or API keys
       - name: Run Gitleaks (Secret Scan)
-        continue-on-error: true
-        run: |
-         mkdir -p Frontend/reports
-         wget https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz
-         tar -xvzf gitleaks_8.24.3_linux_x64.tar.gz
-         sudo mv gitleaks /usr/local/bin/
-         gitleaks detect --source . \
-         --report-format json \
-         --report-path Frontend/reports/gitleaks-report.json
-
+        uses: zricethezav/gitleaks-action@v2
+        env:
+         GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        with:
+         run: detect --source . --report-format json --report-path gitleaks-report.json
 
 
 
@@ -73,14 +68,6 @@ jobs:
           echo "/opt/sonar-scanner/bin" >> $GITHUB_PATH
 
 
-      
-
-      # Check SonarQube Connection
-      - name: Check SonarQube Connection
-        run: |
-          curl -f ${{ secrets.SONAR_HOST_URL }}/api/system/status || exit 1
-      
-            # Cache SonarQube Plugins and Rules
       # - Prevents re-downloading every run → saves time
       - name: Cache SonarQube files
         uses: actions/cache@v3
@@ -136,14 +123,6 @@ jobs:
       - name: Run frontend container
         run: docker run -d --network erp-network -p 8080:80 --name erp-frontend-container erp-frontend:latest
 
-      #  Verify the container is running and reachable
-      - name: Verify Docker container is running
-        run: |
-          echo " Checking running containers..."
-          docker ps
-          echo " Testing if frontend is reachable..."
-          sleep 5
-          curl -v http://localhost:8080 || (echo " App not reachable on port 8080" && exit 1)
 
       # Trivy Security Scan (SCA)
       # Scans Docker image for known vulnerabilities (CVEs)
@@ -179,24 +158,4 @@ jobs:
             gitleaks-report.json
             dependency-check-report.html
 
-           # Send Report via Email
-      - name: Send report via email
-        if: success()
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.EMAIL_USERNAME }}
-          password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "Frontend Security & Code Quality Report - ${{ github.ref_name }}"
-          to: "beshooseha71@gmail.com "
-          from: "Konecta CI/CD <${{ secrets.EMAIL_USERNAME }}>"
-          body: |
-            Hi team 👋,
-            The CI/CD pipeline has completed successfully.
-            Attached are the latest code analysis reports (SonarQube, Trivy, ZAP, etc).
-          attachments: |
-            Frontend/gitleaks-report.json
-            Frontend/dependency-check-report.html
-            Frontend/report_html.html
-
+          
