@@ -4,10 +4,10 @@ on:
   push:
     branches: [ai-team-work]
 
-    paths:
-      - 'AI/automated_document_processing/Dockerfile'
-      - 'AI/automated_document_processing/*.py'
-      - 'AI/automated_document_processing/requirements.txt'
+    # paths:
+    #   - 'AI/automated_document_processing/Dockerfile'
+    #   - 'AI/automated_document_processing/*.py'
+    #   - 'AI/automated_document_processing/requirements.txt'
   pull_request:
     branches: [main]
 
