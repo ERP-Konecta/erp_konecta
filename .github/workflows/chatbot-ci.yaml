@@ -4,10 +4,10 @@ on:
   push:
     branches: [ai-team-work]
 
-    paths:
-      - 'AI/erp_chatbot/Dockerfile'
-      - 'AI/erp_chatbot/*.py'
-      - 'AI/erp_chatbot/requirements.txt' 
+    # paths:
+    #   - 'AI/erp_chatbot/Dockerfile'
+    #   - 'AI/erp_chatbot/*.py'
+    #   - 'AI/erp_chatbot/requirements.txt'
   pull_request:
     branches: [main]
 
@@ -42,17 +42,6 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
-
-      - name: Set up python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-          cache: 'pip'
-
-      - name: Install pysonar
-        run: pip install pysonar
-
-
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
@@ -60,24 +49,26 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
-
-      - name: Build and analyze
-        working-directory: "AI/erp_chatbot"
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL_PYTHON }}
-        run: |
-            pysonar -Dsonar.projectKey=python-project -Dsonar.verbose=true
-
+      - name: SonarQube Scan (SAST)
+        continue-on-error: true
+        uses: sonarsource/sonarqube-scan-action@v2
+        with:
+          projectBaseDir: AI/erp_chatbot
+          args: >
+            -Dsonar.projectKey=python-project
+            -Dsonar.sources=.
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_PYTHON }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN_PYTHON }}
+            -Dsonar.verbose=true
 
       - name: SonarQube Quality Gate check
         uses: sonarsource/sonarqube-quality-gate-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}   
-        timeout-minutes: 5     
+        timeout-minutes: 5
         with:
-          scanMetadataReportFile: "AI/erp_chatbot/.sonar/report-task.txt"
+          scanMetadataReportFile: "AI/erp_chatbot/.scannerwork/report-task.txt"
 
   depchecktest:
     runs-on: ubuntu-latest
@@ -147,7 +138,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t ${{ vars.DOCKERHUB_USERNAME }}/erp-chatbot:${{ github.sha }} ./AI/erp_chatbot
+        run: docker build -t ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }} ./AI/erp_chatbot
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
@@ -165,4 +156,4 @@ jobs:
 
       - name: Push image to DockerHub
         if: success()
-        run: docker push ${{ vars.DOCKERHUB_USERNAME }}/erp-chatbot:${{ github.sha }}
+        run: docker push ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }}
