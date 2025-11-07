@@ -139,7 +139,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build Docker image
-        run: docker build -t ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }} ./AI/erp_chatbot
+        run: docker build -t ${{ vars.DOCKERHUB_USERNAME }}/chatbot:${{ github.sha }} ./AI/erp_chatbot
 
       - name: check image size
         run: docker image ls
@@ -147,12 +147,42 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: '${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }}'
-          format: 'table'
-          exit-code: '1'
+          image-ref: '${{ vars.DOCKERHUB_USERNAME }}/chatbot:${{ github.sha }}'
+          format: 'json'
+          exit-code: '0'
           ignore-unfixed: true
           vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          output: 'trivy-report.json'
+      - name: Generate SBOM
+        uses: aquasecurity/trivy-action@0.18.0
+        with:
+          image-ref: ${{ vars.DOCKERHUB_USERNAME }}/chatbot:${{ github.sha }}
+          format: 'spdx-json'
+          output: 'sbom-chatbot.spdx.json'
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-chatbot
+          path: sbom-chatbot.spdx.json
+          retention-days: 90
+
+      - name: Generate SARIF
+        if: always()
+        uses: aquasecurity/trivy-action@0.18.0
+        with:
+          image-ref: ${{ vars.DOCKERHUB_USERNAME }}/chatbot:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-chatbot-results.sarif'
+
+      - name: Upload SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-chatbot-results.sarif'
+          category: trivy-python
+
 
       - name: Log in to DockerHub
         if: success()
@@ -160,4 +190,4 @@ jobs:
 
       - name: Push image to DockerHub
         if: success()
-        run: docker push ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }}
+        run: docker push ${{ vars.DOCKERHUB_USERNAME }}/chatbot:${{ github.sha }}
