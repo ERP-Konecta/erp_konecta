@@ -82,7 +82,7 @@ jobs:
         with:
           projectBaseDir: Authentication-service/src
           args: >
-            -Dsonar.projectKey=doc-processing
+            -Dsonar.projectKey=auth-service
             -Dsonar.sources=.
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_PYTHON }}
             -Dsonar.token=${{ secrets.SONAR_TOKEN_PYTHON }}
@@ -95,4 +95,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}   
         timeout-minutes: 5
         with:
-          scanMetadataReportFile: "Authentication-service/src/report-task.txt"
+          scanMetadataReportFile: "Authentication-service/.scannerwork/report-task.txt"
