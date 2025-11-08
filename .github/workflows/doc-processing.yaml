@@ -76,7 +76,7 @@ jobs:
     
     permissions:
       contents: read
-      security-events: write  # For SARIF upload to Security tab
+      security-events: write 
     
     steps:
       - name: Checkout
@@ -121,6 +121,9 @@ jobs:
 
   build-scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
     #needs: [gitleaks,sonarqube,depchecktest]
     steps:
 
