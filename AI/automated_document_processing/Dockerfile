@@ -1,30 +1,68 @@
-# Use an official Python runtime as a parent image
-FROM python:3.10-slim
+FROM ghcr.io/astral-sh/uv:python3.10-trixie-slim AS builder
 
-# Set the working directory in the container
+
 WORKDIR /app
 
-# Install system dependencies required for OCR (Tesseract) and PDF handling (pdfplumber dependencies)
-# We need tesseract-ocr and necessary libraries for handling images and PDFs
-RUN apt-get update && \
-    apt-get install -y libpoppler-cpp-dev libtesseract-dev poppler-utils tesseract-ocr \
-    # Clean up to keep the image small
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    libtesseract-dev \
+    libleptonica-dev \
+    poppler-utils \
+    libpoppler-cpp-dev \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy the requirements file into the container
-COPY requirements.txt .
+# Copy dependency files only (for caching)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    uv sync --locked --no-install-project --no-editable
 
-# Install any dependencies specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy full project source
+ADD . /app
 
-# Copy the rest of the application code into the container
-COPY document_processor_flask_api.py .
+# Install project into .venv
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-editable
 
-# The application is configured to listen on the Hugging Face default port 7860
-ENV PORT 7860
+
+
+# Set cache directories for model downloads in builder
+ENV HF_HOME=/app/.cache/huggingface
+ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
+ENV SENTENCE_TRANSFORMERS_HOME=/app/.cache/sentence_transformers
+
+
+
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install only runtime dependencies (removed -dev packages)
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN addgroup --system app && adduser --system --ingroup app app
+
+# Copy app and .venv from builder
+COPY --from=builder --chown=app:app /app /app
+
+ENV PORT=7860
+ENV WORKERS=4
 EXPOSE 7860
 
-# Define the command to run the application using gunicorn for production reliability
-# gunicorn is a WSGI HTTP Server that's more robust than Flask's built-in server.
-# The format is: gunicorn -w [workers] -b 0.0.0.0:[PORT] [module_name]:[flask_app_variable]
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:7860", "document_processor_flask_api:app"]
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH=/app/src
+
+# Set cache directories to use pre-downloaded models from /app/.cache
+ENV HF_HOME=/app/.cache/huggingface
+ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
+ENV SENTENCE_TRANSFORMERS_HOME=/app/.cache/sentence_transformers
+
+USER app
+
+# Start the Flask app via gunicorn
+# Increased timeout for document processing workloads
+CMD ["sh", "-c", "gunicorn -w ${WORKERS} -b 0.0.0.0:${PORT} --timeout 120 --access-logfile - src.document_processor_flask_api:app"]
