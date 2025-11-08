@@ -44,17 +44,40 @@ jobs:
          path: ~/.dependency-check
          key: ${{ runner.os }}-dependency-check
 
-      - name: Run OWASP Dependency Check 
-        run: |
-            mkdir -p Authentication-service/reports
-            wget -q https://github.com/jeremylong/DependencyCheck/releases/download/v10.0.3/dependency-check-10.0.3-release.zip
-            unzip -q dependency-check-10.0.3-release.zip
-            ./dependency-check/bin/dependency-check.sh \
-            --project "Authentication-service" \
-            --scan Authentication-service \
-            --format "HTML" \
-            --out Authentication-service/reports \
-            --enableExperimental
+      - name: Run OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+         project: 'Authentication-service'
+         path: './Authentication-service'
+         format: 'ALL'
+         out: 'Authentication-service/reports'
+         args: >
+          --failOnCVSS 7
+          --enableRetired
+          --enableExperimental
 
 
 
+
+
+
+      - name: Run SonarQube Scan
+        run: mvn sonar:sonar \
+          -Dsonar.projectKey=auth-service \
+          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+          -Dsonar.sources=src/main/java
+
+      - name: Check SonarQube Quality Gate
+        id: qualitygate
+        uses: SonarSource/sonarqube-quality-gate-action@master
+        with:
+          sonar-token: ${{ secrets.SONAR_TOKEN }}
+          sonar-host-url: ${{ secrets.SONAR_HOST_URL  }}
+
+      - name: Run Gitleaks
+        uses: zricethezav/gitleaks-action@v2
+        env:
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        with:
+          run: detect --source . --report-format json --report-path Authentication-service/reports/gitleaks.json
