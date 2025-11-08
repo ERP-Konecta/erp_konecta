@@ -38,6 +38,13 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests=true
 
+      - name: Cache OWASP Dependency Check data
+        uses: actions/cache@v4
+        with:
+         path: ~/.dependency-check
+         key: ${{ runner.os }}-dependency-check
+
+
       - name: Run OWASP Dependency Check
         run: |
             mkdir -p Authentication-service/reports
