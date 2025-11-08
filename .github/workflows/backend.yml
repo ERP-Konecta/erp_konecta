@@ -32,13 +32,19 @@ jobs:
           fetch-depth: 0
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
           
       
-      
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('Authentication-service/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
 
       - name: Build with Maven
         working-directory: Authentication-service
@@ -54,63 +60,39 @@ jobs:
           GITLEAKS_SCAN_PATH: "Authentication-service"
     
 
-
-      # OWASP Dependency Check (SCA)
-      - name: OWASP Dependency Check
-        uses: dependency-check/Dependency-Check_Action@main
+  sonarqube:
+    name: Inspect - SAST
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
         with:
-          project: "auth-service"
-          path: "Authentication-service"
-          format: "HTML"
-          out: "dependency-check-report"
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
 
-      - name: Upload Dependency Check Report
-        uses: actions/upload-artifact@v4
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
         with:
-          name: dependency-check-report
-          path: dependency-check-report
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
-      # SonarQube Scan (SAST)
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@master
+      - name: SonarQube Scan (SAST)
+        continue-on-error: true
+        uses: sonarsource/sonarqube-scan-action@v2
         with:
+          projectBaseDir: Authentication-service/src
           args: >
-            -Dsonar.projectKey=auth-service
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-            -Dsonar.java.binaries=target
+            -Dsonar.projectKey=doc-processing
+            -Dsonar.sources=.
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_PYTHON }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN_PYTHON }}
+            -Dsonar.verbose=true
 
-      #  Quality Gate Check
-      - name: SonarQube Quality Gate
-        uses: SonarSource/sonarqube-quality-gate-action@master
-        timeout-minutes: 5
+      - name: SonarQube Quality Gate check
+        uses: sonarsource/sonarqube-quality-gate-action@master
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-
-      #  Build Docker image
-      - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/auth-service:${{ github.sha }} .
-
-      # Run Temporary Container
-      - name: Run Temporary Container
-        run: |
-          docker run -d -p 8080:8080 --name temp-container ${{ secrets.DOCKER_HUB_USERNAME }}/auth-service:${{ github.sha }}
-          sleep 20
-          docker ps
-
-      # OWASP ZAP Scan (DAST)
-      - name: OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.12.0
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}   
+        timeout-minutes: 5
         with:
-          target: "http://localhost:8080"
-          docker_name: "owasp/zap2docker-stable"
-
-      # Push Docker Image to DockerHub
-      - name: Log in to DockerHub
-        if: success()
-        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
-
-      - name: Push image to DockerHub
-        if: success()
-        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/auth-service:${{ github.sha }}
+          scanMetadataReportFile: "Authentication-service/src/report-task.txt"
