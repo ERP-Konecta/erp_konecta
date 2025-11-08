@@ -37,18 +37,29 @@ jobs:
 
       - name: Build with Maven
         run: mvn clean package -DskipTests=true
+        
+        # ---- Switch to Java 17 for Dependency Check ----
+      - name: Set up JDK 17 for Dependency Check
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
-         project: "Authentication-service"
-         path: "Authentication-service"
-         format: "HTML"
-         out: "Authentication-service/reports"
-         args: --enableExperimental
+          project: "Authentication-service"
+          path: "Authentication-service"
+          format: "HTML"
+          out: "Authentication-service/reports"
+          args: --enableExperimental
 
-
-
+      # ---- Switch back to Java 21 for Sonar & Gitleaks ----
+      - name: Set up JDK 21 for Sonar & Gitleaks
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
 
       - name: Run SonarQube Scan
         run: mvn sonar:sonar \
@@ -62,7 +73,7 @@ jobs:
         uses: SonarSource/sonarqube-quality-gate-action@master
         with:
           sonar-token: ${{ secrets.SONAR_TOKEN }}
-          sonar-host-url: ${{ secrets.SONAR_HOST_URL  }}
+          sonar-host-url: ${{ secrets.SONAR_HOST_URL }}
 
       - name: Run Gitleaks
         uses: zricethezav/gitleaks-action@v2
