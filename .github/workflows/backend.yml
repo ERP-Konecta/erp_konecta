@@ -40,12 +40,17 @@ jobs:
 
     
 
-      - name: Run SonarQube Scan
-        run: mvn sonar:sonar \
-          -Dsonar.projectKey=auth-service \
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-          -Dsonar.sources=src/main/java
+      # SonarQube Analysis (Static App Security Testing)
+      - name: SonarQube Scan (SAST)
+        
+        uses: sonarsource/sonarqube-scan-action@v2
+        with:
+         
+          args: >
+            -Dsonar.projectKey=auth-service \
+            -Dsonar.sources=src/main/java
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
 
       - name: Check SonarQube Quality Gate
         id: qualitygate
