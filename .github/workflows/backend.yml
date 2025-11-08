@@ -42,3 +42,25 @@ jobs:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
           GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
           GITLEAKS_SCAN_PATH: "Authentication-service"
+          
+  
+      # Shallow clones should be disabled for a better relevancy of analysis
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: SonarQube Scan (SAST)
+        continue-on-error: true
+        uses: sonarsource/sonarqube-scan-action@v2
+        with:
+          projectBaseDir: AI/automated_document_processing
+          args: >
+            -Dsonar.projectKey=doc-processing
+            -Dsonar.sources=.
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_PYTHON }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN_PYTHON }}
+            -Dsonar.verbose=true
