@@ -54,12 +54,12 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       - name: SonarQube Scan (SAST)
-        continue-on-error: true
+        
         uses: sonarsource/sonarqube-scan-action@v2
         with:
-          projectBaseDir: AI/automated_document_processing
+          projectBaseDir: Authentication-service
           args: >
-            -Dsonar.projectKey=doc-processing
+            -Dsonar.projectKey=auth-service
             -Dsonar.sources=.
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_PYTHON }}
             -Dsonar.token=${{ secrets.SONAR_TOKEN_PYTHON }}
