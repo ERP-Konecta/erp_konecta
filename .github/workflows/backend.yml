@@ -49,7 +49,7 @@ jobs:
         uses: dependency-check/Dependency-Check_Action@main
         with:
           project: "auth-service"
-          path: "."
+          path: "Authentication-service"
           format: "HTML"
           out: "dependency-check-report"
       - name: Upload Dependency Check Report
