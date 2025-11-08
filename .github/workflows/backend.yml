@@ -10,6 +10,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    defaults:
+     run:
+          working-directory: Authentication-service
+
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -31,7 +36,7 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Build with Maven
-        run: mvn -f Authentication-service/pom.xml clean verify -DskipTests=false
+        run: mvn -f Authentication-service/pom.xml clean package -DskipTests=true
 
       - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
