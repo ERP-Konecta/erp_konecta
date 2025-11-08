@@ -142,6 +142,7 @@ jobs:
 
       - name: Generate SBOM
         uses: aquasecurity/trivy-action@0.18.0
+        if: always()
         with:
           image-ref: ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }}
           format: 'spdx-json'
@@ -149,6 +150,7 @@ jobs:
 
       - name: Upload SBOM
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: sbom-doc-processing
           path: sbom-doc-processing.spdx.json
