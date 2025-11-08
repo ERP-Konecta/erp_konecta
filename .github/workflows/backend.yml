@@ -45,10 +45,12 @@ jobs:
         
         uses: sonarsource/sonarqube-scan-action@v2
         with:
+        
+          projectBaseDir: Authentication-service
          
           args: >
             -Dsonar.projectKey=auth-service 
-            -Dsonar.sources=src/main/java
+            -Dsonar.sources=src/main
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
             -Dsonar.token=${{ secrets.SONAR_TOKEN }}
 
