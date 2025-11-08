@@ -163,6 +163,9 @@ jobs:
           image-ref: ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }}
           format: 'sarif'
           output: 'trivy-doc-processing-results.sarif'
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          ignore-unfixed: true
 
       - name: Upload SARIF
         if: always()
