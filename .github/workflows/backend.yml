@@ -47,7 +47,7 @@ jobs:
         with:
          
           args: >
-            -Dsonar.projectKey=auth-service \
+            -Dsonar.projectKey=auth-service 
             -Dsonar.sources=src/main/java
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
             -Dsonar.token=${{ secrets.SONAR_TOKEN }}
