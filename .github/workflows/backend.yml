@@ -95,4 +95,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}   
         timeout-minutes: 5
         with:
-          scanMetadataReportFile: "target/sonar/report-task.txt"
+          scanMetadataReportFile: "Authentication-service/target/sonar/report-task.txt"
