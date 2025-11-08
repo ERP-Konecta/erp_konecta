@@ -37,7 +37,8 @@ jobs:
       # SonarQube Analysis using Maven
       - name: SonarQube Scan
         working-directory: Authentication-service
-        run: mvn sonar:sonar \
+        run: |
+         mvn sonar:sonar \
               -Dsonar.projectKey=auth-service \
               -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
               -Dsonar.login=${{ secrets.SONAR_TOKEN }}
