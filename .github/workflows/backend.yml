@@ -34,25 +34,11 @@ jobs:
         working-directory: Authentication-service
         run: mvn clean package -DskipTests=true
 
-      # SonarQube Analysis using Maven
-      - name: SonarQube Scan
-        working-directory: Authentication-service
-        run: |
-         mvn sonar:sonar \
-              -Dsonar.projectKey=auth-service \
-              -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-              -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
-      - name: Check SonarQube Quality Gate
-        uses: SonarSource/sonarqube-quality-gate-action@master
-        with:
-          sonar-token: ${{ secrets.SONAR_TOKEN }}
-          sonar-host-url: ${{ secrets.SONAR_HOST_URL }}
-
-      - name: Run Gitleaks
-        
-        uses: zricethezav/gitleaks-action@v2
+      - name: Run GitLeaks Scan
+        uses: gitleaks/gitleaks-action@v2
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-        with:
-          run: detect --source . --report-format json --report-path reports/gitleaks.json
+          GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
+          GITLEAKS_SCAN_PATH: "Authentication-service"
