@@ -87,6 +87,9 @@ jobs:
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_PYTHON }}
             -Dsonar.token=${{ secrets.SONAR_TOKEN_PYTHON }}
             -Dsonar.verbose=true
+      
+      - name: report
+        run : ls -aR 
 
       - name: SonarQube Quality Gate check
         uses: sonarsource/sonarqube-quality-gate-action@master
