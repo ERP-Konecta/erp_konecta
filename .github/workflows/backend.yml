@@ -44,23 +44,61 @@ jobs:
           GITLEAKS_SCAN_PATH: "Authentication-service"
           
   
-      # Shallow clones should be disabled for a better relevancy of analysis
-
-      - name: Cache SonarQube packages
-        uses: actions/cache@v4
+      # OWASP Dependency Check (SCA)
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
         with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
-
-      - name: SonarQube Scan (SAST)
-        
-        uses: sonarsource/sonarqube-scan-action@v2
+          project: "auth-service"
+          path: "."
+          format: "HTML"
+          out: "dependency-check-report"
+      - name: Upload Dependency Check Report
+        uses: actions/upload-artifact@v4
         with:
-          projectBaseDir: Authentication-service
+          name: dependency-check-report
+          path: dependency-check-report
+
+      # SonarQube Scan (SAST)
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        with:
           args: >
             -Dsonar.projectKey=auth-service
-            -Dsonar.sources=.
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_PYTHON }}
-            -Dsonar.token=${{ secrets.SONAR_TOKEN_PYTHON }}
-            -Dsonar.verbose=true
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.java.binaries=target
+
+      #  Quality Gate Check
+      - name: SonarQube Quality Gate
+        uses: SonarSource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      #  Build Docker image
+      - name: Build Docker Image
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/auth-service:${{ github.sha }} .
+
+      # Run Temporary Container
+      - name: Run Temporary Container
+        run: |
+          docker run -d -p 8080:8080 --name temp-container ${{ secrets.DOCKER_HUB_USERNAME }}/auth-service:${{ github.sha }}
+          sleep 20
+          docker ps
+
+      # OWASP ZAP Scan (DAST)
+      - name: OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: "http://localhost:8080"
+          docker_name: "owasp/zap2docker-stable"
+
+      # Push Docker Image to DockerHub
+      - name: Log in to DockerHub
+        if: success()
+        run: echo "${{ secrets.DOCKER_HUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_HUB_USERNAME }}" --password-stdin
+
+      - name: Push image to DockerHub
+        if: success()
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/auth-service:${{ github.sha }}
