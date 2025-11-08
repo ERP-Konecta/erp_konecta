@@ -7,7 +7,8 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  ci:
+ 
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +36,7 @@ jobs:
 
       - name: Build with Maven
         working-directory: Authentication-service
-        run: mvn clean package -DskipTests=true
+        run: mvn clean package -DskipTests=false
 
 
       - name: Run GitLeaks Scan
