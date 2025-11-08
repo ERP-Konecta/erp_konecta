@@ -80,10 +80,10 @@ jobs:
         continue-on-error: true
         uses: sonarsource/sonarqube-scan-action@v2
         with:
-          projectBaseDir: Authentication-service/src
+          projectBaseDir: Authentication-service
           args: >
             -Dsonar.projectKey=auth-service
-            -Dsonar.sources=.
+            -Dsonar.sources=src
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_PYTHON }}
             -Dsonar.token=${{ secrets.SONAR_TOKEN_PYTHON }}
             -Dsonar.verbose=true
