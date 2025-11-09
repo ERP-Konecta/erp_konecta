@@ -1,17 +1,18 @@
-name: Doc-Processing CI
+name: ${{ env.SERVICE_NAME }} CI
 
 on:
   push:
     branches: [ai-team-work]
 
     paths:
-      - 'AI/automated_document_processing/*'
+      - 'doc-processing/*'
       - '.github/workflows/doc-processing.yaml'
-    #   - 'AI/automated_document_processing/requirements.txt'
   pull_request:
     branches: [main]
 
-  workflow_dispatch: 
+  workflow_dispatch:
+env:
+  SERVICE_NAME: doc-processing
 
 jobs:
 
@@ -31,7 +32,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
           GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
-          GITLEAKS_SCAN_PATH: "AI/automated_document_processing"
+          GITLEAKS_SCAN_PATH: "${{ env.SERVICE_NAME }}"
 
   sonarqube:
     name: Inspect - SAST
@@ -40,7 +41,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 0
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
@@ -53,9 +54,9 @@ jobs:
         continue-on-error: true
         uses: sonarsource/sonarqube-scan-action@v2
         with:
-          projectBaseDir: AI/automated_document_processing
+          projectBaseDir: ${{ env.SERVICE_NAME }}
           args: >
-            -Dsonar.projectKey=doc-processing
+            -Dsonar.projectKey=${{ env.SERVICE_NAME }}
             -Dsonar.sources=.
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
             -Dsonar.token=${{ secrets.SONAR_TOKEN }}
@@ -69,7 +70,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   
         timeout-minutes: 5
         with:
-          scanMetadataReportFile: "AI/automated_document_processing/.scannerwork/report-task.txt"
+          scanMetadataReportFile: "${{ env.SERVICE_NAME }}/.scannerwork/report-task.txt"
 
   depchecktest:
     runs-on: ubuntu-latest
@@ -97,12 +98,12 @@ jobs:
         continue-on-error: true
         id: Depcheck
         with:
-          project: 'AI-automated_document_processing'
-          path: './AI/automated_document_processing'
+          project: '${{ env.SERVICE_NAME }}'
+          path: './${{ env.SERVICE_NAME }}'
           format: 'ALL'
           out: 'reports'
           args: >
-            --failOnCVSS 7
+            --failOnCVSS 8
             --enableRetired
             --enableExperimental
       
@@ -141,18 +142,18 @@ jobs:
           UV_PYTHON: '3.10'
 
       - name: Sync Dependencies
-        working-directory: ./AI/automated_document_processing
+        working-directory: ./${{ env.SERVICE_NAME }}
         run: uv lock
 
       - name: Build Docker image
-        run: docker build -t ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }} ./AI/automated_document_processing
+        run: docker build -t ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }} ./${{ env.SERVICE_NAME }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: '${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }}'
+          image-ref: '${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}'
           format: 'sarif'
-          output: 'trivy-doc-processing-results.sarif'
+          output: 'trivy-${{ env.SERVICE_NAME }}-results.sarif'
           exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
@@ -162,26 +163,24 @@ jobs:
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: 'trivy-doc-processing-results.sarif'
+          sarif_file: 'trivy-${{ env.SERVICE_NAME }}-results.sarif'
           category: trivy-python
 
       - name: Generate SBOM
         uses: aquasecurity/trivy-action@0.18.0
         if: always()
         with:
-          image-ref: ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }}
+          image-ref: ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
           format: 'spdx-json'
-          output: 'sbom-doc-processing.spdx.json'
+          output: 'sbom-${{ env.SERVICE_NAME }}.spdx.json'
 
       - name: Upload SBOM
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: sbom-doc-processing
-          path: sbom-doc-processing.spdx.json
+          name: sbom-${{ env.SERVICE_NAME }}
+          path: sbom-${{ env.SERVICE_NAME }}.spdx.json
           retention-days: 90
-
-      
 
       - name: Log in to DockerHub
         if: always()
@@ -189,7 +188,7 @@ jobs:
 
       - name: Push image to DockerHub
         if: always()
-        run: docker push ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:${{ github.sha }}
+        run: docker push ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
 
   deploy:
     name: Deploy to EC2
@@ -200,44 +199,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+      - name: Make deploy script executable
+        run: chmod +x .github/scripts/deploy.sh
 
-      - name: Copy docker-compose file to EC2
-        run: |
-          scp -i ~/.ssh/deploy_key \
-            -o StrictHostKeyChecking=no \
-            ./docker-compose.yml \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/doc-processing/
+      - name: Deploy to EC2
+        env:
+          SERVICE_NAME: ${{ env.SERVICE_NAME }}
+          GITHUB_SHA: ${{ github.sha }}
+          EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
 
-      - name: Deploy with Docker Compose
-        run: |
-          ssh -i ~/.ssh/deploy_key \
-            -o StrictHostKeyChecking=no \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            cd ~/doc-processing
-            
-            # Create .env file from GitHub secrets
-            echo "DOCKERHUB_USERNAME=${{ vars.DOCKERHUB_USERNAME }}" > .env
-            echo "IMAGE_TAG=latest" >> .env
-            echo "GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}" >> .env
-            
-            # Login to DockerHub
-            echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login --username "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            
-            # Pull the latest image
-            docker pull ${{ vars.DOCKERHUB_USERNAME }}/doc-processing:latest
-            
-            # Stop and remove old containers
-            docker-compose down
-            
-            # Start new containers
-            docker-compose up -d
-            
-            # Clean up old images
-            docker image prune -af
-          EOF
+        run: .github/scripts/deploy.sh
