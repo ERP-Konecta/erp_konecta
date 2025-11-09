@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: doc-processing-mongodb
+    restart: unless-stopped
+
+    volumes:
+      - mongodb-data:/data/db
+      - mongodb-config:/data/configdb
+    networks:
+      - doc-processing-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  doc-processing:
+    image: ${DOCKERHUB_USERNAME}/doc-processing:${IMAGE_TAG}
+    container_name: doc-processing-app
+    restart: unless-stopped
+    ports:
+      - "7860:7860"
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/invoice_reader_db
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    networks:
+      - doc-processing-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:7860/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  mongodb-data:
+    driver: local
+  mongodb-config:
+    driver: local
+
+networks:
+  doc-processing-network:
+    driver: bridge
