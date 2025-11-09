@@ -12,7 +12,7 @@ from flask import Flask, request, jsonify, send_file
 from werkzeug.utils import secure_filename
 import tempfile
 
-# Load environment variabless
+# Load environment variables
 load_dotenv()
 google_api_key = os.getenv("GOOGLE_API_KEY")
 mongo_uri = os.getenv("MONGO_URI")

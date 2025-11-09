@@ -5,7 +5,7 @@ on:
     branches: [ai-team-work]
 
     paths:
-      - 'doc-processing/*'
+      - 'doc-processing/**'
       - '.github/workflows/doc-processing.yaml'
   pull_request:
     branches: [main]
