@@ -26,14 +26,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-editable
 
 
-
-# Set cache directories for model downloads in builder
-ENV HF_HOME=/app/.cache/huggingface
-ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
-ENV SENTENCE_TRANSFORMERS_HOME=/app/.cache/sentence_transformers
-
-
-
 FROM python:3.10-slim
 
 WORKDIR /app
@@ -49,20 +41,14 @@ RUN addgroup --system app && adduser --system --ingroup app app
 # Copy app and .venv from builder
 COPY --from=builder --chown=app:app /app /app
 
-ENV PORT=7860
-ENV WORKERS=4
+
 EXPOSE 7860
 
 ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH=/app/src
 
-# Set cache directories to use pre-downloaded models from /app/.cache
-ENV HF_HOME=/app/.cache/huggingface
-ENV TRANSFORMERS_CACHE=/app/.cache/huggingface
-ENV SENTENCE_TRANSFORMERS_HOME=/app/.cache/sentence_transformers
-
 USER app
 
 # Start the Flask app via gunicorn
 # Increased timeout for document processing workloads
-CMD ["sh", "-c", "gunicorn -w ${WORKERS} -b 0.0.0.0:${PORT} --timeout 120 --access-logfile - src.document_processor_flask_api:app"]
+CMD ["sh", "-c", "gunicorn -w 4 -b 0.0.0.0:7860 --timeout 120 --access-logfile - src.document_processor_flask_api:app"]
