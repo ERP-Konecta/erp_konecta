@@ -13,10 +13,6 @@ ssh-keyscan -H "${EC2_HOST}" >> ~/.ssh/known_hosts
 ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "${EC2_USER}@${EC2_HOST}" << EOF
 set -e
 
-# Create .env file from GitHub vars/secrets
-cat > .env <<EOT
-GOOGLE_API_KEY=${GOOGLE_API_KEY}
-EOT
 
 # Docker login
 echo "${DOCKERHUB_TOKEN}" | docker login --username "${DOCKERHUB_USERNAME}" --password-stdin
@@ -28,8 +24,8 @@ docker pull ${DOCKERHUB_USERNAME}/${SERVICE_NAME}:${GITHUB_SHA}
 sed -i "s|${DOCKERHUB_USERNAME}/${SERVICE_NAME}:.*|${DOCKERHUB_USERNAME}/${SERVICE_NAME}:${GITHUB_SHA}|g" docker-compose.yml
 
 # Redeploy with Docker Compose
-docker-compose down
-docker-compose up -d
+docker compose down
+docker compose up -d
 
 # Clean up old images
 docker image prune -af
