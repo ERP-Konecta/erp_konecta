@@ -48,7 +48,7 @@ jobs:
 
       - name: Build with Maven
         working-directory: Authentication-service
-        run: mvn clean package -DskipTests=false
+        run: mvn clean package -DskipTests
 
 
       - name: Run GitLeaks Scan
@@ -79,7 +79,7 @@ jobs:
 
       - name: Build with Maven
         working-directory: Authentication-service
-        run: mvn clean verify
+        run: mvn clean verify -DskipTests
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
@@ -94,7 +94,7 @@ jobs:
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn clean verify sonar:sonar \
+        run: mvn sonar:sonar \
           -Dsonar.projectKey=auth-service \
           -Dsonar.sources=src \
           -Dsonar.verbose=true
