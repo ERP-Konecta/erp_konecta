@@ -139,11 +139,8 @@ jobs:
         env:
           UV_PYTHON: '3.10'
 
-      - name: Install the project
+      - name: Sync Dependencies
         working-directory: ./AI/automated_document_processing
-        run: uv lock
-
-      - name: Sync dependencies
         run: uv lock
 
       - name: Build Docker image
