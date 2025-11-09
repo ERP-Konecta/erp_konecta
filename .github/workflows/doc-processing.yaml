@@ -147,7 +147,7 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }} ./${{ env.SERVICE_NAME }}
-
+    
       # - name: Run Trivy vulnerability scanner
       #   uses: aquasecurity/trivy-action@0.28.0
       #   with:
@@ -180,7 +180,7 @@ jobs:
       #   with:
       #     name: sbom-${{ env.SERVICE_NAME }}
       #     path: sbom-${{ env.SERVICE_NAME }}.spdx.json
-          retention-days: 90
+      #    retention-days: 90
 
       - name: Log in to DockerHub
         if: always()
