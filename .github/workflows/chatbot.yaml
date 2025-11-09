@@ -58,15 +58,15 @@ jobs:
           args: >
             -Dsonar.projectKey=chatbot
             -Dsonar.sources=.
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL_PYTHON }}
-            -Dsonar.token=${{ secrets.SONAR_TOKEN_PYTHON }}
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
             -Dsonar.verbose=true
 
       - name: SonarQube Quality Gate check
         uses: sonarsource/sonarqube-quality-gate-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN_PYTHON }}   
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   
         timeout-minutes: 5
         with:
           scanMetadataReportFile: "AI/erp_chatbot/.scannerwork/report-task.txt"
