@@ -78,13 +78,13 @@ jobs:
 
       - name: SonarQube Scan (SAST)
         continue-on-error: true
+        working-directory: Authentication-service
         run: mvn clean verify sonar:sonar \
           -Dsonar.projectKey=auth-service \
           -Dsonar.sources=src \
           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
           -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-          -Dsonar.verbose=true \
-          -Dsonar.projectBaseDir=auth-service
+          -Dsonar.verbose=true
       
       - name: report
         run : ls -aR 
