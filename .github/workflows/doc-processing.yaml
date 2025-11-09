@@ -222,11 +222,9 @@ jobs:
             cd ~/doc-processing
             
             # Create .env file from GitHub secrets
-            cat > .env << 'ENVEOF'
-            DOCKERHUB_USERNAME=${{ vars.DOCKERHUB_USERNAME }}
-            IMAGE_TAG=latest
-            GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}
-            ENVEOF
+            echo "DOCKERHUB_USERNAME=${{ vars.DOCKERHUB_USERNAME }}" > .env
+            echo "IMAGE_TAG=latest" >> .env
+            echo "GOOGLE_API_KEY=${{ secrets.GOOGLE_API_KEY }}" >> .env
             
             # Login to DockerHub
             echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login --username "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
