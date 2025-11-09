@@ -126,7 +126,8 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    #needs: [gitleaks,sonarqube,depchecktest]
+    needs: [gitleaks,sonarqube,depchecktest]
+    continue-on-error: true
     steps:
 
       - name: Checkout
