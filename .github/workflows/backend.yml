@@ -78,15 +78,13 @@ jobs:
 
       - name: SonarQube Scan (SAST)
         continue-on-error: true
-        uses: sonarsource/sonarqube-scan-action@v2
-        with:
-          projectBaseDir: Authentication-service
-          args: >
-            -Dsonar.projectKey=auth-service
-            -Dsonar.sources=src
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
-            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
-            -Dsonar.verbose=true
+        run: mvn clean verify sonar:sonar \
+          -Dsonar.projectKey=auth-service \
+          -Dsonar.sources=src \
+          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+          -Dsonar.verbose=true \
+          -Dsonar.projectBaseDir=auth-service
       
       - name: report
         run : ls -aR 
