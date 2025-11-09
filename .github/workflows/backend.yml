@@ -77,10 +77,6 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build with Maven
-        working-directory: Authentication-service
-        run: mvn clean verify -DskipTests
-
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
@@ -94,13 +90,10 @@ jobs:
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn sonar:sonar \
+        run: mvn clean verify sonar:sonar -DskipTests \
           -Dsonar.projectKey=auth-service \
           -Dsonar.sources=src \
           -Dsonar.verbose=true
-      
-      - name: report
-        run : ls -aR 
 
       - name: SonarQube Quality Gate check
         uses: sonarsource/sonarqube-quality-gate-action@master
