@@ -37,6 +37,14 @@ jobs:
         run: mvn clean package -DskipTests
 
 
+      - name: OWASP Dependency Check Scan
+        uses: owasp/dependency-check-action@v8
+        with:
+          project: auth-service
+          scan: Authentication-service
+          format: 'ALL'  # HTML, XML, JSON
+  
+    
 
   sonarqube:
     name: Inspect - SAST
