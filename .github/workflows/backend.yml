@@ -47,7 +47,7 @@ jobs:
       - name: OWASP Dependency Check via Maven
         working-directory: Authentication-service
         env:
-          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY}}
         run: mvn org.owasp:dependency-check-maven:check
 
 
