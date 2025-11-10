@@ -1,4 +1,4 @@
-name: doc-processing CI
+name: doc-processing CI/CD
 
 on:
   push:
