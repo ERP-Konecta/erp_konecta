@@ -93,7 +93,7 @@ jobs:
            mvn clean verify sonar:sonar -DskipTests \
            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-           -Dsonar.sources=pom.xml,src/main/java,src/main/resources \
+           -Dsonar.sources=pom.xml,Dockerfile,src/main/java,src/main/resources \
            -Dsonar.tests=src/test/java \
            -Dsonar.exclusions=**/test/**,**/tests/** \
            -Dsonar.java.binaries=target/classes \
