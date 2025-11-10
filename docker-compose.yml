@@ -19,7 +19,7 @@ services:
       start_period: 40s
 
   doc-processing:
-    image: ${DOCKERHUB_USERNAME}/doc-processing:latest
+    image: aliashmawy/doc-processing:latest
     container_name: doc-processing-app
     restart: unless-stopped
     ports:
