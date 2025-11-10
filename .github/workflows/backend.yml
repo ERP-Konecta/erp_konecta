@@ -36,25 +36,18 @@ jobs:
         working-directory: Authentication-service
         run: mvn clean package -DskipTests
 
-
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-         path: ~/.m2
-         key: ${{ runner.os }}-maven-${{ hashFiles('Authentication-service/pom.xml') }}
-         restore-keys: |
-                ${{ runner.os }}-maven-
-
       - name: Cache OWASP Dependency Check data
         uses: actions/cache@v4
         with:
           path: ~/.dependency-check
-          key: ${{ runner.os }}-dependency-check
+          key: ${{ runner.os }}-dependency-check-${{ hashFiles('Authentication-service/pom.xml') }}
           restore-keys: |
            ${{ runner.os }}-dependency-check
 
       - name: OWASP Dependency Check via Maven
         working-directory: Authentication-service
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: mvn org.owasp:dependency-check-maven:check
 
 
