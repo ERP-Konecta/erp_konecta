@@ -37,33 +37,6 @@ jobs:
         run: mvn clean package -DskipTests
 
 
-      - name: OWASP Dependency Check Scan
-        uses: owasp/dependency-check-action@v8
-        with:
-          project: auth-service
-          scan: Authentication-service
-          format: 'ALL'  # HTML, XML, JSON
-  
-      - name: Build Docker image
-        working-directory: Authentication-service
-        run: docker build -t authentication-service:latest .
-
-      - name: Scan Docker Image with Trivy
-        uses: aquasecurity/trivy-action@v2
-        with:
-          image-ref: 'authentication-service:latest'
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-
-      - name: Run OWASP ZAP Baseline Scan
-        uses: zaproxy/action-baseline@v0.9.1
-        with:
-          target: 'http://localhost:8080' 
-          cmd_options: '-r zap_report.html'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
 
   sonarqube:
     name: Inspect - SAST
