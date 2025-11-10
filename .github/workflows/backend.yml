@@ -69,7 +69,7 @@ jobs:
          exit-code: '0'
 
       - name: Upload Auth report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
          name: auth-trivy-report
          path: Authentication-service/trivy_report.json
