@@ -85,21 +85,26 @@ jobs:
             restore-keys: ${{ runner.os }}-sonar
 
       - name: SonarQube Scan (SAST)
-        continue-on-error: true
         working-directory: Authentication-service
         env:
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn clean verify sonar:sonar -DskipTests \
-          -Dsonar.projectKey=auth-service \
-          -Dsonar.sources=src \
-          -Dsonar.verbose=true
+           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+           mvn clean verify sonar:sonar -DskipTests \
+           -Dsonar.projectKey=auth-service \
+           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+           -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+           -Dsonar.sources=src \
+           -Dsonar.verbose=true
+ 
+
+
 
       - name: SonarQube Quality Gate check
         uses: sonarsource/sonarqube-quality-gate-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   
-        timeout-minutes: 5
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+         timeout-minutes: 5
         with:
-          scanMetadataReportFile: "Authentication-service/target/sonar/report-task.txt"
+         scanMetadataReportFile: Authentication-service/target/sonar/report-task.txt
