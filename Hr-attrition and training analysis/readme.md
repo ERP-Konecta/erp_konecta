@@ -51,7 +51,6 @@ The API supports two core access patterns: **Bulk Retrieval** (for dashboards) a
 | :---- | :---- |
 | **app.py** | The main **FastAPI application code**, including all API routes, Pydantic models, and prediction logic. |
 | **requirements.txt** | List of all Python dependencies (e.g., fastapi, uvicorn, google-generativeai). |
-| **HR\_Usecases.ipynb** | The **original training notebook** documenting feature engineering, model selection, and artifact generation. |
 | **combined.csv** | The **dataset** used by the server's GET endpoints for internal data lookup and bulk processing (relative path is required). |
 | **\*.joblib files** | Serialized ML artifacts: models, scaler, and feature name lists. |
 
