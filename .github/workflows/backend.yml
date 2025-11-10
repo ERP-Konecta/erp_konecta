@@ -91,10 +91,9 @@ jobs:
            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
            mvn clean verify sonar:sonar -DskipTests \
-           -Dsonar.projectKey=auth-service \
            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-           -Dsonar.sources=.,src/main \
+           -Dsonar.sources=pom.xml,src/main/java,src/main/resources \
            -Dsonar.tests=src/test/java \
            -Dsonar.exclusions=**/test/**,**/tests/** \
            -Dsonar.java.binaries=target/classes \
