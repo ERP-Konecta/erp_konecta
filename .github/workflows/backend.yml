@@ -36,19 +36,11 @@ jobs:
         working-directory: Authentication-service
         run: mvn clean package -DskipTests
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-         java-version: '17'
-         distribution: 'temurin'
+      - name: Run OWASP Dependency Check (via Maven plugin)
+        working-directory: Authentication-service
+        run: |
+          mvn org.owasp:dependency-check-maven:check -Dformat=HTML -DoutputDirectory=reports
 
-      - name: OWASP Dependency Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-         project: 'Authentication-service'
-         path: 'Authentication-service'
-         format: 'HTML'
-         output: 'Authentication-service/reports'
 
       
 
