@@ -45,15 +45,15 @@ jobs:
 
       - name: OWASP Dependency Check Scan
         uses: dependency-check/Dependency-Check_Action@main
-        env:
-         JAVA_HOME: ${{ env.JAVA_HOME }}
         with:
          project: auth-service
          path: Authentication-service
-         format: 'ALL'
+         format: ALL
          out: reports
-  
-    
+        env:
+         JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.9-10/x64
+         PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.9-10/x64/bin:${{ env.PATH }}
+
 
   sonarqube:
     name: Inspect - SAST
