@@ -230,7 +230,7 @@ jobs:
           allow_issue_writing: false
 
       - name: debug zap files
-        run: ls -la .zap/
+        run: ls -aR
       
       - name: Upload ZAP Report
         if: always()
