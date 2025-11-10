@@ -51,7 +51,7 @@ jobs:
           path: ~/.dependency-check
           key: ${{ runner.os }}-dependency-check
           restore-keys: |
-          ${{ runner.os }}-dependency-check
+           ${{ runner.os }}-dependency-check
 
       - name: OWASP Dependency Check via Maven
         working-directory: Authentication-service
