@@ -44,11 +44,24 @@ jobs:
           restore-keys: |
            ${{ runner.os }}-dependency-check
 
+      - name: Check if NVD API Key exists
+        run: |
+           if [ -z "${{ secrets.NVD_API_KEY }}" ]; then
+            echo "Warning: NVD API Key not found! Dependency-Check will run very slowly without it."
+    
+           else
+            echo "NVD API Key found, proceeding with Dependency-Check."
+           fi
+
+
       - name: OWASP Dependency Check via Maven
         working-directory: Authentication-service
         env:
             NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: mvn org.owasp:dependency-check-maven:check -Dnvd.apiKey=${{ secrets.NVD_API_KEY }}
+        run:  mvn org.owasp:dependency-check-maven:check \
+          -Dnvd.apiKey=${{ secrets.NVD_API_KEY }} \
+          -Dformat=ALL \
+          -Dout=target/dependency-check-report
 
 
 
