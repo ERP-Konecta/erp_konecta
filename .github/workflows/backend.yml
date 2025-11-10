@@ -58,12 +58,19 @@ jobs:
         working-directory: Authentication-service
         env:
             NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run:   |
-             mvn org.owasp:dependency-check-maven:check \
-             -Dnvd.apiKey=${{ secrets.NVD_API_KEY }} \
-             -Dformat=ALL \
-             -Dout=target/dependency-check-report
-
+        run: |
+            if [ -z "$NVD_API_KEY" ]; then
+              echo "Warning: NVD API Key not found! Dependency-Check will run very slowly without it."
+              mvn org.owasp:dependency-check-maven:check \
+              -Dformat=ALL \
+              -Dout=target/dependency-check-report
+            else
+              echo "NVD API Key found, proceeding with Dependency-Check."
+              mvn org.owasp:dependency-check-maven:check \
+              -Dnvd.apiKey=$NVD_API_KEY \
+              -Dformat=ALL \
+              -Dout=target/dependency-check-report
+            fi
 
 
   sonarqube:
