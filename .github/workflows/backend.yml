@@ -59,7 +59,7 @@ jobs:
           path: 'Authentication-service'
           format: 'ALL'
           out: 'reports'
-          nvdApiKey: ${{ secrets.NVD_API_KEY }}
+          
   sonarqube:
     name: Inspect - SAST
     runs-on: ubuntu-latest
