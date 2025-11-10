@@ -92,9 +92,12 @@ jobs:
         run: |
            mvn clean verify sonar:sonar -DskipTests \
            -Dsonar.projectKey=auth-service \
-           "-Dsonar.sources=. ,src/main " \
-           "-Dsonar.tests=src/test/java " \
-           "-Dsonar.exclusions=**/test/**,**/tests/** " \
+           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+           -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+           -Dsonar.sources=.,src/main \
+           -Dsonar.tests=src/test/java \
+           -Dsonar.exclusions=**/test/**,**/tests/** \
+           -Dsonar.java.binaries=target/classes \
            -Dsonar.verbose=true
 
  
