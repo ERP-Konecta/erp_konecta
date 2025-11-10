@@ -44,20 +44,22 @@ jobs:
           restore-keys: |
            ${{ runner.os }}-dependency-check
 
-      - name: Check if NVD API Key exists
-        run: |
-           if [ -z "${{ secrets.NVD_API_KEY }}" ]; then
-            echo "Warning: NVD API Key not found! Dependency-Check will run very slowly without it."
-    
-           else
-            echo "NVD API Key found, proceeding with Dependency-Check."
-           fi
+      - name: Cache Dependency Check data
+        uses: actions/cache@v4
+        with:
+          path: ~/.dependency-check
+          key: ${{ runner.os }}-dependency-check
+          restore-keys: |
+            ${{ runner.os }}-dependency-check
 
-
-      - name: OWASP Dependency Check via Maven
-        working-directory: Authentication-service
-        run: mvn org.owasp:dependency-check-maven:check -Dnvd.apiKey=${{ secrets.NVD_API_KEY }} -Dformat=ALL -Dout=target/dependency-check-report
-
+      - name: Run OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@v2
+        with:
+          project: 'auth-service'
+          path: 'Authentication-service'
+          format: 'ALL'
+          out: 'reports'
+          nvdApiKey: ${{ secrets.NVD_API_KEY }}
   sonarqube:
     name: Inspect - SAST
     runs-on: ubuntu-latest
