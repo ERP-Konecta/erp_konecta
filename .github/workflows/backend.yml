@@ -50,6 +50,7 @@ jobs:
          path: Authentication-service
          format: ALL
          out: reports
+         use-docker: false 
         env:
          JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.9-10/x64
          PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.9-10/x64/bin:${{ env.PATH }}
