@@ -58,46 +58,24 @@ jobs:
         working-directory: Authentication-service
 
       # Create Docker network (reuse if exists)
-      - name: Create Docker network
-        run: docker network create erp-network || true
-
-      # Run Authentication-service container
-      - name: Run Authentication-service container
-        run: docker run -d --network erp-network -p 8081:8080 --name erp-auth-container erp-auth:latest
-
-      # Trivy Security Scan (SCA)
-      - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.20.0
-        with:
-         image-ref: 'erp-auth:latest'
-         format: 'table'
-         exit-code: '0'
-
-      # Prepare workspace
-      - name: Prepare ZAP workspace
+      - name: Run Authentication-service and ZAP scan
         run: |
-           mkdir -p Authentication-service/zap_reports
-           chmod 777 Authentication-service/zap_reports
+             docker network create erp-network || true
+             docker run -d --network=erp-network -p 8081:8080 --name erp-auth-container erp-auth:latest
+             echo "Waiting for Authentication-service to be ready..."
+             sleep 10
+             mkdir -p Authentication-service/zap_reports
+             chmod 777 Authentication-service/zap_reports
+             docker pull ghcr.io/zaproxy/zaproxy:stable
+             docker run -v $(pwd)/Authentication-service/zap_reports:/zap/wrk/:rw \
+             --network=erp-network \
+             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
+             -t http://erp-auth-container:8080 \
+             -J report_json.json \
+             -w report_md.md \
+             -r report_html.html \
+             -m 5 -I
 
-      # Wait for auth service to be ready
-      - name: Wait for Authentication-service
-        run: |
-            echo "Waiting for Authentication-service to be ready..."
-            sleep 10
-
-      # Run ZAP scan
-      - name: Run OWASP ZAP Baseline Scan
-        run: |
-            echo "🚀 Running OWASP ZAP Baseline Scan..."
-            docker pull ghcr.io/zaproxy/zaproxy:stable
-            docker run -v $(pwd)/Authentication-service/zap_reports:/zap/wrk/:rw \
-            --network=erp-network \
-            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-            -t http://erp-auth-container:8080 \
-            -J report_json.json \
-            -w report_md.md \
-            -r report_html.html \
-            -m 5 -I
   sonarqube:
     name: Inspect - SAST
     runs-on: ubuntu-latest
