@@ -229,14 +229,4 @@ jobs:
           artifact_name: 'zap-report'
           cmd_options: '-a'
           allow_issue_writing: false
-
-      - name: debug zap files
-        run: ls -aR
-      
-      - name: Upload ZAP Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-           name: zap-report.html
-           path: .
         
