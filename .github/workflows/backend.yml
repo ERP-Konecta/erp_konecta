@@ -38,7 +38,7 @@ jobs:
 
 
       - name: OWASP Dependency Check Scan
-        uses: owasp/dependency-check-action@main
+        uses: jeremylong/DependencyCheck@v8
         with:
           project: auth-service
           scan: Authentication-service
