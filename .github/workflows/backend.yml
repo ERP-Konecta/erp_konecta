@@ -43,17 +43,9 @@ jobs:
          distribution: 'temurin'
          java-version: '21'
 
-      - name: OWASP Dependency Check Scan
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-         project: auth-service
-         path: Authentication-service
-         format: ALL
-         out: reports
-         use-docker: false 
-        env:
-         JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.9-10/x64
-         PATH: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/21.0.9-10/x64/bin:${{ env.PATH }}
+      - name: OWASP Dependency Check via Maven
+        working-directory: Authentication-service
+        run: mvn org.owasp:dependency-check-maven:check
 
 
   sonarqube:
