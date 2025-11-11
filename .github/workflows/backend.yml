@@ -71,15 +71,15 @@ jobs:
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
             -Dsonar.token=${{ secrets.SONAR_TOKEN }}
            
-      - name: SonarQube Quality Gate check
+      - name: SonarQube Quality Gate
         uses: sonarsource/sonarqube-quality-gate-action@master
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   
-        timeout-minutes: 5
         with:
-          scanMetadataReportFile: "${{ env.SERVICE_NAME }}/target/sonar/report-task.txt"
+          projectKey: ${{ env.SERVICE_NAME }}
+          pollingTimeoutSec: 300
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
 
   depchecktest:
     runs-on: ubuntu-latest
