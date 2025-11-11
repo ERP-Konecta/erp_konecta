@@ -36,7 +36,7 @@ jobs:
         working-directory: Authentication-service
         run: mvn clean package -DskipTests
       
-      # Build Docker image for Authentication-service
+       # Build Docker image for Authentication-service
       - name: Build Docker image
         run: docker build -t erp-auth:latest .
         working-directory: Authentication-service
@@ -54,10 +54,8 @@ jobs:
         uses: aquasecurity/trivy-action@0.20.0
         with:
          image-ref: 'erp-auth:latest'
-         format: 'table,json'
-         output: 'Authentication-service/trivy_report.json'
+         format: 'table'
          exit-code: '0'
-
       - name: Upload Auth report
         uses: actions/upload-artifact@v4
         with:
