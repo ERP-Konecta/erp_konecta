@@ -54,13 +54,14 @@ jobs:
         uses: aquasecurity/trivy-action@0.20.0
         with:
          image-ref: 'erp-auth:latest'
-         format: 'table'
+         format: 'json'
          exit-code: '0'
+         output: 'Authentication-service/reports/trivy_report.json'
       - name: Upload Auth report
         uses: actions/upload-artifact@v4
         with:
          name: auth-trivy-report
-         path: Authentication-service/trivy_report.json
+         path: Authentication-service/reports/trivy_report.json
   sonarqube:
     name: Inspect - SAST
     runs-on: ubuntu-latest
