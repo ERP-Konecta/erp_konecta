@@ -36,19 +36,18 @@ jobs:
         working-directory: Authentication-service
         run: mvn clean package -DskipTests
          
-      - name: Check NVD API Key
+      - name: Test NVD API Key
         run: |
-            echo "Checking NVD API Key..."
-            curl -s -H "Accept: application/json" \
-            -H "apiKey: ${{ secrets.NVD_API_KEY }}" \
-            https://services.nvd.nist.gov/rest/json/cves/2.0?keyword=apache | jq .
-            -Dnvd.delay=6000   
+          echo "Checking NVD API Key..."
+          curl -s -H "Accept: application/json" \
+          -H "apiKey: ${{ secrets.NVD_API_KEY }}" \
+          "https://services.nvd.nist.gov/rest/json/cves/2.0?keyword=apache" | jq .
 
       - name: OWASP Dependency Check
-        env:
-          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: mvn org.owasp:dependency-check-maven:9.0.0:check -Dnvd.api.key=$NVD_API_KEY      
-        working-directory: Authentication-service  
+        run: |
+          mvn org.owasp:dependency-check-maven:9.0.0:check \
+          -Dnvd.api.key=${{ secrets.NVD_API_KEY }} \
+          -Dnvd.delay=6000   
 
       # Build Docker image for Authentication-service
       - name: Build Docker image
