@@ -35,6 +35,13 @@ jobs:
       - name: Build with Maven
         working-directory: Authentication-service
         run: mvn clean package -DskipTests
+         
+      - name: Check NVD API Key
+        run: |
+            echo "Checking NVD API Key..."
+            curl -s -H "Accept: application/json" \
+            -H "apiKey: ${{ secrets.NVD_API_KEY }}" \
+            https://services.nvd.nist.gov/rest/json/cves/2.0?keyword=apache | jq .
 
       - name: OWASP Dependency Check
         run: mvn org.owasp:dependency-check-maven:9.0.0:check -Dnvd.api.key=${{ secrets.NVD_API_KEY }} -Dnvd.delay=6000     
