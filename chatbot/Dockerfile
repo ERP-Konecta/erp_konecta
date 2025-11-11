@@ -36,6 +36,5 @@ ENV PYTHONPATH=/app/src
 
 USER app
 
-# Start the Flask app via gunicorn
-# Increased timeout for document processing workloads
-CMD ["sh", "-c", "gunicorn -w 4 -b 0.0.0.0:7860 --timeout 120 --access-logfile - src.document_processor_flask_api:app"]
+
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:7860", "--timeout", "120", "src.erp_chatbot_api:app"]
