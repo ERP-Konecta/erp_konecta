@@ -74,11 +74,11 @@ jobs:
       - name: SonarQube Quality Gate
         uses: sonarsource/sonarqube-quality-gate-action@master
         with:
-          projectKey: ${{ env.SERVICE_NAME }}
-          pollingTimeoutSec: 300
+         scanMetadataReportFile: ${{ env.SERVICE_NAME }}/.scannerwork/report-task.txt
+         pollingTimeoutSec: 300
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
 
   depchecktest:
