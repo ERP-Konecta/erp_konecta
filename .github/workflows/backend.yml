@@ -104,7 +104,7 @@ jobs:
 
       - name: Run OWASP Dependency-Check
         uses: dependency-check/Dependency-Check_Action@main
-        continue-on-error: true
+        
         id: Depcheck
         with:
           project: '${{ env.SERVICE_NAME }}'
