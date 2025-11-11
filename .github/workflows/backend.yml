@@ -37,7 +37,8 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: OWASP Dependency Check
-        run: mvn org.owasp:dependency-check-maven:8.4.0:check   
+        run: mvn org.owasp:dependency-check-maven:8.4.0:check 
+        working-directory: Authentication-service  
 
       # Build Docker image for Authentication-service
       - name: Build Docker image
