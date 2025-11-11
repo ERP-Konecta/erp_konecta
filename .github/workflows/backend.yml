@@ -37,7 +37,7 @@ jobs:
         run: mvn clean package -DskipTests
 
       - name: OWASP Dependency Check
-        run: mvn org.owasp:dependency-check-maven:9.0.0:check -Dnvd.api.key=${{ secrets.NVD_API_KEY }}   
+        run: mvn org.owasp:dependency-check-maven:9.0.0:check -Dnvd.api.key=${{ secrets.NVD_API_KEY }} -Dnvd.delay=6000     
         working-directory: Authentication-service  
 
       # Build Docker image for Authentication-service
