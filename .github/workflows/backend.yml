@@ -131,4 +131,49 @@ jobs:
           sarif_file: reports/dependency-check-report.sarif
 
 
-  
+  build-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    needs: [gitleaks,sonarqube,depchecktest]
+    continue-on-error: true
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build with Maven
+        working-directory: ./${{ env.SERVICE_NAME }}
+        run: mvn clean package -DskipTests
+      
+       # Build Docker image for Authentication-service
+      - name: Build Docker image
+        run: docker build -t erp-auth:latest .
+        working-directory: ./${{ env.SERVICE_NAME }}
+
+      # Create Docker network (reuse if exists)
+      - name: Create Docker network
+        run: docker network create erp-network || true
+
+      # Run Authentication-service container
+      - name: Run Authentication-service container
+        run: docker run -d --network erp-network -p 8081:8080 --name erp-auth-container erp-auth:latest
+
+      # Trivy Security Scan (SCA)
+
+      - name: Create reports folder
+        run: mkdir -p ${{ env.SERVICE_NAME }}/reports
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@0.20.0
+        with:
+         image-ref: 'erp-auth:latest'
+         format: 'json'
+         exit-code: '0'
+         output: "${{ env.SERVICE_NAME }}/trivy_report.json"
+      - name: Upload Auth report
+        uses: actions/upload-artifact@v4
+        with:
+         name: auth-trivy-report
+         path: "${{ env.SERVICE_NAME }}/reports/trivy_report.json"
