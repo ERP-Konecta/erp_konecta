@@ -1,24 +1,41 @@
-# Use the official Python image as a base
-FROM python:3.10-slim
+FROM ghcr.io/astral-sh/uv:python3.10-trixie-slim AS builder
 
-# Set the working directory in the container
+
 WORKDIR /app
 
-# Copy the requirements file into the container
-COPY requirements.txt .
 
-# Install dependencies, including gunicorn for production servingg
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy dependency files only (for caching)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    uv sync --locked --no-install-project --no-editable
 
-# Copy the main application file into the container
-# Assuming your Python code is saved as 'erp_chatbot_api.py'
-COPY erp_chatbot_api.py .
+# Copy full project source
+ADD . /app
 
-# Expose the port your Flask app is configured to listen on (7860)
-# Hugging Face Spaces automatically maps this port.
+# Install project into .venv
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-editable
+
+
+FROM python:3.10-slim
+
+WORKDIR /app
+
+
+RUN addgroup --system app && adduser --system --ingroup app app
+
+# Copy app and .venv from builder
+COPY --from=builder --chown=app:app /app /app
+
+
 EXPOSE 7860
 
-# Command to run the application using Gunicorn
-# 'app:app' means running the 'app' object from the 'app.py' file.
-# We bind it to 0.0.0.0 on the standard port 7860 for HF Spaces.
-CMD ["gunicorn", "--bind", "0.0.0.0:7860", "erp_chatbot_api:app"]
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH=/app/src
+
+USER app
+
+# Start the Flask app via gunicorn
+# Increased timeout for document processing workloads
+CMD ["sh", "-c", "gunicorn -w 4 -b 0.0.0.0:7860 --timeout 120 --access-logfile - src.document_processor_flask_api:app"]
