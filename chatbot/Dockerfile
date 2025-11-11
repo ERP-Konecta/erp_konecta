@@ -4,6 +4,9 @@ FROM ghcr.io/astral-sh/uv:python3.10-trixie-slim AS builder
 WORKDIR /app
 
 
+#Replace hardlinking with copying to avoid issues on filesystems that do not support hardlinks
+ENV UV_LINK_MODE=copy
+
 # Copy dependency files only (for caching)
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
