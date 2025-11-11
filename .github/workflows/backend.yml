@@ -144,9 +144,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build with Maven
-        working-directory: ./${{ env.SERVICE_NAME }}
-        run: mvn clean package -DskipTests
-      
+        run: mvn clean compile -f ${{ env.SERVICE_NAME }}/pom.xml
+
        # Build Docker image for Authentication-service
       - name: Build Docker image
         run: docker build -t erp-auth:latest .
