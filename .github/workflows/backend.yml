@@ -61,6 +61,7 @@ jobs:
         with:
           projectBaseDir: ${{ env.SERVICE_NAME }}
           args: >
+            -sonar-scanner -X
             -Dsonar.projectKey=${{ env.SERVICE_NAME }}
             -Dsonar.sources=.
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
