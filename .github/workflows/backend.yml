@@ -167,16 +167,11 @@ jobs:
           cmd_options: '-a'
           allow_issue_writing: false
 
-      - name: Move ZAP reports to reports folder
-        run: |
-            mkdir -p ${{ env.SERVICE_NAME }}/reports
-            mv zap-report/* ${{ env.SERVICE_NAME }}/reports/ || true
-
       - name: Upload ZAP report
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
-          path: ${{ env.SERVICE_NAME }}/reports
+          path: zap-report.zip
 
       # Trivy Security Scan (SCA)
 
