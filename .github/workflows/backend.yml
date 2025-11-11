@@ -47,6 +47,10 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+      - name: Build with Maven
+        run: mvn clean compile -f ${{ env.SERVICE_NAME }}/pom.xml
+
+
 
       - name: Cache SonarQube packages
         uses: actions/cache@v4
@@ -56,16 +60,16 @@ jobs:
           restore-keys: ${{ runner.os }}-sonar
 
       - name: SonarQube Scan (SAST)
-        continue-on-error: true
+        
         uses: sonarsource/sonarqube-scan-action@v2
         with:
           projectBaseDir: ${{ env.SERVICE_NAME }}
           args: >
             -Dsonar.projectKey=${{ env.SERVICE_NAME }}
-            -Dsonar.sources=.
+            -Dsonar.sources=src
+            -Dsonar.java.binaries=target/classes
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
             -Dsonar.token=${{ secrets.SONAR_TOKEN }}
-            -X
            
       - name: SonarQube Quality Gate check
         uses: sonarsource/sonarqube-quality-gate-action@master
