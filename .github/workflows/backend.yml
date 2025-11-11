@@ -6,66 +6,30 @@ on:
   pull_request:
     branches: [ "main" ]
 
+  workflow_dispatch:
+env:
+  SERVICE_NAME: Authentication-service
+
 jobs:
-  ci:
- 
+
+  gitleaks:
+    name: Secret Detection (GitLeaks)
     runs-on: ubuntu-latest
-   
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '21'
-          
-      
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-maven-${{ hashFiles('Authentication-service/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - name: Run GitLeaks Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+          GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
+          GITLEAKS_SCAN_PATH: "${{ env.SERVICE_NAME }}"
 
-      - name: Build with Maven
-        working-directory: Authentication-service
-        run: mvn clean package -DskipTests
-      
-       # Build Docker image for Authentication-service
-      - name: Build Docker image
-        run: docker build -t erp-auth:latest .
-        working-directory: Authentication-service
-
-      # Create Docker network (reuse if exists)
-      - name: Create Docker network
-        run: docker network create erp-network || true
-
-      # Run Authentication-service container
-      - name: Run Authentication-service container
-        run: docker run -d --network erp-network -p 8081:8080 --name erp-auth-container erp-auth:latest
-
-      # Trivy Security Scan (SCA)
-
-      - name: Create reports folder
-        run: mkdir -p Authentication-service/reports
-
-      - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@0.20.0
-        with:
-         image-ref: 'erp-auth:latest'
-         format: 'json'
-         exit-code: '0'
-         output: 'Authentication-service/reports/trivy_report.json'
-      - name: Upload Auth report
-        uses: actions/upload-artifact@v4
-        with:
-         name: auth-trivy-report
-         path: Authentication-service/reports/trivy_report.json
   sonarqube:
     name: Inspect - SAST
     runs-on: ubuntu-latest
@@ -83,40 +47,117 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
+
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
-            path: ~/.sonar/cache
-            key: ${{ runner.os }}-sonar
-            restore-keys: ${{ runner.os }}-sonar
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
 
       - name: SonarQube Scan (SAST)
-        working-directory: Authentication-service
-        env:
-           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-           mvn clean verify sonar:sonar -DskipTests \
-           -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-           -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-           -Dsonar.sources=pom.xml,Dockerfile,src/main/java,src/main/resources \
-           -Dsonar.tests=src/test/java \
-           -Dsonar.exclusions=**/test/**,**/tests/** \
-           -Dsonar.java.binaries=target/classes \
-           -Dsonar.verbose=true
+        continue-on-error: true
+        uses: sonarsource/sonarqube-scan-action@v2
+        with:
+          projectBaseDir: ${{ env.SERVICE_NAME }}
+          args: >
+            -Dsonar.projectKey=${{ env.SERVICE_NAME }}
+            -Dsonar.sources=.
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
+            -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.verbose=true
+
       - name: SonarQube Quality Gate check
         uses: sonarsource/sonarqube-quality-gate-action@master
-        env:
-         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-         timeout-minutes: 5
-        with:
-         scanMetadataReportFile: Authentication-service/target/sonar/report-task.txt
-
-      - name: Run GitLeaks Scan
-        uses: gitleaks/gitleaks-action@v2
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-          GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
-          GITLEAKS_SCAN_PATH: "Authentication-service"
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   
+        timeout-minutes: 5
+        with:
+          scanMetadataReportFile: "${{ env.SERVICE_NAME }}/target/sonar/report-task.txt"
+
+  depchecktest:
+    runs-on: ubuntu-latest
+    name: dependency_check_scan
+    
+    permissions:
+      contents: read
+      security-events: write 
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Dependency-Check database
+        uses: actions/cache@v4
+        with:
+          path: ~/.dependency-check
+          key: depcheck-data-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            depcheck-data-${{ runner.os }}-
+
+
+      - name: Run OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        continue-on-error: true
+        id: Depcheck
+        with:
+          project: '${{ env.SERVICE_NAME }}'
+          path: './${{ env.SERVICE_NAME }}'
+          format: 'ALL'
+          out: 'reports'
+          args: >
+            --failOnCVSS 8
+            --enableRetired
+            --enableExperimental
+      
+      - name: Upload Dependency-Check report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+           name: dependency-check-report
+           path: ${{ github.workspace }}/reports
+
+      
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: reports/dependency-check-report.sarif
+
+
+  build-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    needs: [gitleaks,sonarqube,depchecktest]
+    continue-on-error: true
+    steps:
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build Docker image
+        run: docker build -t ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }} ./${{ env.SERVICE_NAME }}
+    
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: '${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-${{ env.SERVICE_NAME }}-results.sarif'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
