@@ -54,7 +54,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.20.0
         with:
          image-ref: 'erp-auth:latest'
-         format: 'table , json'
+         format: 'table,json'
          output: 'Authentication-service/trivy_report.json'
          exit-code: '0'
 
