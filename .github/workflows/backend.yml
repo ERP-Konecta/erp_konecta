@@ -44,6 +44,7 @@ jobs:
           "https://services.nvd.nist.gov/rest/json/cves/2.0?keyword=apache" | jq .
 
       - name: OWASP Dependency Check
+        working-directory: Authentication-service
         run: |
           mvn org.owasp:dependency-check-maven:9.0.0:check \
           -Dnvd.api.key=${{ secrets.NVD_API_KEY }} \
