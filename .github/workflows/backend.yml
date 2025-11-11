@@ -61,13 +61,12 @@ jobs:
         with:
           projectBaseDir: ${{ env.SERVICE_NAME }}
           args: >
-            -sonar-scanner -X
             -Dsonar.projectKey=${{ env.SERVICE_NAME }}
             -Dsonar.sources=.
             -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }}
             -Dsonar.token=${{ secrets.SONAR_TOKEN }}
             -Dsonar.verbose=true
-
+            sonar-scanner -X
       - name: SonarQube Quality Gate check
         uses: sonarsource/sonarqube-quality-gate-action@master
         continue-on-error: true
