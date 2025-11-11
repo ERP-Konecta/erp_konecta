@@ -44,7 +44,7 @@ jobs:
           "https://services.nvd.nist.gov/rest/json/cves/2.0?keyword=apache" | jq .
 
       - name: OWASP Dependency Check
-        run: mvn org.owasp:dependency-check-maven:9.0.0:check -Dnvd.api.key=${{ secrets.NVD_API_KEY }} -Dnvd.delay=6000
+        run: mvn org.owasp:dependency-check-maven:12.1.0:check -Dnvd.api.key=${{ secrets.NVD_API_KEY }} -Dnvd.delay=6000
         working-directory: Authentication-service      
 
       # Build Docker image for Authentication-service
