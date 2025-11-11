@@ -168,7 +168,7 @@ jobs:
          image-ref: 'erp-auth:latest'
          format: 'json'
          exit-code: '0'
-         output: "${{ env.SERVICE_NAME }}/trivy_report.json"
+         output: "${{ env.SERVICE_NAME }}/reports/trivy_report.json"
       - name: Upload Auth report
         uses: actions/upload-artifact@v4
         with:
