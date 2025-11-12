@@ -209,7 +209,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull origin ${{ github.ref_name }}
+          git fetch origin ${{ github.ref_name }}
+          git reset --hard origin/${{ github.ref_name }}
           git add docker-compose.yml
           git commit -m "Update ${{ env.SERVICE_NAME }} tag to ${{ github.run_number }} in docker-compose.yml"
           git push
