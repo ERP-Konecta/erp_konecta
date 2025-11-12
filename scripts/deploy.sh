@@ -26,6 +26,7 @@ echo "Branch: ${BRANCH}"
 if [ ! -d "\$APP_DIR/.git" ]; then
   echo "Cloning repository..."
   git clone -b \$BRANCH \$REPO_URL \$APP_DIR
+  cd \$APP_DIR
 else
   echo "Pulling latest changes..."
   cd \$APP_DIR
@@ -33,7 +34,6 @@ else
   git reset --hard origin/\$BRANCH
 fi
 
-cd \$APP_DIR
 
 
 # Docker login
