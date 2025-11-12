@@ -12,7 +12,7 @@ ssh-keyscan -H "${EC2_HOST}" >> ~/.ssh/known_hosts
 ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "${EC2_USER}@${EC2_HOST}" << EOF
 set -e
 
-# Variables (from GitHub Actions)
+# Variables
 APP_DIR="${SERVICE_NAME}"
 REPO_URL="${REPO_URL}"
 BRANCH="${BRANCH:-main}"
