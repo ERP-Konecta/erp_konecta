@@ -214,7 +214,7 @@ jobs:
       - name: Make deploy script executable
         run: chmod +x scripts/deploy.sh
 
-      - name: Deploy to EC2
+      - name: Deploy new app version
         env:
           SERVICE_NAME: ${{ env.SERVICE_NAME }}
           github_run_number: ${{ github.run_number }}
