@@ -13,7 +13,7 @@ ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "${EC2_USER}@${EC2_HOST}" <
 set -e
 
 # Variables
-APP_DIR="${SERVICE_NAME}"
+APP_DIR="erp_konecta"
 REPO_URL="${REPO_URL}"
 BRANCH="${BRANCH:-main}"
 
