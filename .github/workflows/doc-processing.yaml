@@ -202,15 +202,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Change image tag
-        run: sed -i "s|${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:.*|${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{github.run_number}}|g" docker-compose.yml
-
-      - name: Push changes
+      - name: Change image tag and Push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin ${{ github.ref_name }}
-          git reset origin/${{ github.ref_name }}
+          git pull origin ${{ github.ref_name }}
+          sed -i "s|${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:.*|${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{github.run_number}}|g" docker-compose.yml
           git add docker-compose.yml
           git commit -m "Update ${{ env.SERVICE_NAME }} tag to ${{ github.run_number }} in docker-compose.yml"
           git push
