@@ -201,7 +201,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Change image tag
-        run: sed -i "s|${DOCKERHUB_USERNAME}/${SERVICE_NAME}:.*|${DOCKERHUB_USERNAME}/${SERVICE_NAME}:${github.run_number}|g" docker-compose.yml
+        run: sed -i "s|${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:.*|${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{github.run_number}}|g" docker-compose.yml
 
       - name: Push changes
         uses: stefanzweifel/git-auto-commit-action@v7
