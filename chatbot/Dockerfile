@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-install-project --no-editable
 
 # Copy full project source
-ADD . /app
+COPY . /app
 
 # Install project into .venv
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -30,6 +30,10 @@ RUN addgroup --system app && adduser --system --ingroup app app
 
 # Copy app and .venv from builder
 COPY --from=builder --chown=app:app /app /app
+
+
+# Ensure proper permissions for copied files
+RUN chmod -R 755 /app
 
 
 EXPOSE 7860
