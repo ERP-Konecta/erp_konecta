@@ -13,7 +13,7 @@ ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "${EC2_USER}@${EC2_HOST}" <
 set -e
 
 # Variables (from GitHub Actions)
-APP_DIR="/opt/${SERVICE_NAME}"
+APP_DIR="${SERVICE_NAME}"
 REPO_URL="${REPO_URL}"
 BRANCH="${BRANCH:-main}"
 
