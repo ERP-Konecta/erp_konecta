@@ -34,6 +34,7 @@ else
   git reset --hard origin/\$BRANCH
 fi
 
+echo cat docker-compose.yml
 
 
 # Docker login
