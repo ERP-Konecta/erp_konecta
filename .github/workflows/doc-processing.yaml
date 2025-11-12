@@ -13,6 +13,7 @@ on:
   workflow_dispatch:
 env:
   SERVICE_NAME: doc-processing
+  SERVICE_PORT: 7870
 
 jobs:
 
@@ -146,12 +147,12 @@ jobs:
         run: uv lock
 
       - name: Build Docker image
-        run: docker build -t ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }} ./${{ env.SERVICE_NAME }}
+        run: docker build -t ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }} ./${{ env.SERVICE_NAME }}
     
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: '${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}'
+          image-ref: '${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }}'
           format: 'sarif'
           output: 'trivy-${{ env.SERVICE_NAME }}-results.sarif'
           exit-code: '1'
@@ -170,7 +171,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.18.0
         if: always()
         with:
-          image-ref: ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          image-ref: ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }}
           format: 'spdx-json'
           output: 'sbom-${{ env.SERVICE_NAME }}.spdx.json'
 
@@ -188,7 +189,7 @@ jobs:
 
       - name: Push image to DockerHub
         if: always()
-        run: docker push ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+        run: docker push ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }}
 
   deploy:
     name: Deploy to EC2
@@ -199,19 +200,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Change image tag
+        run: sed -i "s|${DOCKERHUB_USERNAME}/${SERVICE_NAME}:.*|${DOCKERHUB_USERNAME}/${SERVICE_NAME}:${github.run_number}|g" docker-compose.yml
+
+      - name: Push changes
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "Update ${{ env.SERVICE_NAME }} tag to ${{ github.run_number }} in docker-compose.yml"
+          file_pattern: "docker-compose.yml"
+ 
       - name: Make deploy script executable
         run: chmod +x scripts/deploy.sh
 
       - name: Deploy to EC2
         env:
           SERVICE_NAME: ${{ env.SERVICE_NAME }}
-          GITHUB_SHA: ${{ github.sha }}
+          github_run_number: ${{ github.run_number }}
           EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_USER: ${{ secrets.EC2_USER }}
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          REPO_URL: https://github.com/${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+
 
         run: scripts/deploy.sh
 
@@ -226,8 +239,7 @@ jobs:
         uses: zaproxy/action-full-scan@v0.13.0
         with:
           docker_name: 'ghcr.io/zaproxy/zaproxy:stable'
-          target: 'http://${{ secrets.EC2_HOST }}:7860'
+          target: 'http://${{ secrets.EC2_HOST }}:${{ env.SERVICE_PORT }}'
           artifact_name: 'zap-report'
           cmd_options: '-a'
           allow_issue_writing: false
-        

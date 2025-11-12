@@ -8,25 +8,45 @@ chmod 600 ~/.ssh/deploy_key
 ssh-keyscan -H "${EC2_HOST}" >> ~/.ssh/known_hosts
 
 
-
 # === Remote Deployment ===
 ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no "${EC2_USER}@${EC2_HOST}" << EOF
 set -e
+
+# Variables (from GitHub Actions)
+APP_DIR="/opt/${SERVICE_NAME}"
+REPO_URL="${REPO_URL}"
+BRANCH="${BRANCH:-main}"
+
+echo "Deploying service: ${SERVICE_NAME}"
+echo "Repo: ${REPO_URL}"
+echo "Branch: ${BRANCH}"
+
+#Setup / Update Code
+
+if [ ! -d "\$APP_DIR/.git" ]; then
+  echo "Cloning repository..."
+  git clone -b \$BRANCH \$REPO_URL \$APP_DIR
+else
+  echo "Pulling latest changes..."
+  cd \$APP_DIR
+  git fetch origin \$BRANCH
+  git reset --hard origin/\$BRANCH
+fi
+
+cd \$APP_DIR
 
 
 # Docker login
 echo "${DOCKERHUB_TOKEN}" | docker login --username "${DOCKERHUB_USERNAME}" --password-stdin
 
-# Pull new image
-docker pull ${DOCKERHUB_USERNAME}/${SERVICE_NAME}:${GITHUB_SHA}
 
-# === Update image tag in docker-compose.yml ===
-sed -i "s|${DOCKERHUB_USERNAME}/${SERVICE_NAME}:.*|${DOCKERHUB_USERNAME}/${SERVICE_NAME}:${GITHUB_SHA}|g" docker-compose.yml
+# Pull new images first
+docker compose pull
 
-# Redeploy with Docker Compose
-docker compose down
-docker compose up -d
+# Recreate only the containers whose image or config changed (ignore recreating dependant services)
+docker compose up -d --no-deps --build ${SERVICE_NAME}
 
-# Clean up old images
+# Optionally clean up old images
 docker image prune -af
+
 EOF
