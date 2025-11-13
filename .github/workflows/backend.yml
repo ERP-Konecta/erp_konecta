@@ -147,7 +147,7 @@ jobs:
      
        # Build Docker image for Authentication-service
       - name: Build Docker image
-        run: docker build -t ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }} ./${{ env.SERVICE_NAME }}
+        run: docker build -t ${{ vars.DOCKER_HUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }} ./${{ env.SERVICE_NAME }}
         working-directory: ./${{ env.SERVICE_NAME }}
           
       # Trivy Security Scan (SCA)
