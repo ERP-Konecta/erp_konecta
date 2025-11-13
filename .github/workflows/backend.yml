@@ -135,7 +135,7 @@ jobs:
         uses: aquasecurity/trivy-action@0.18.0
         if: always()
         with:
-          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }}
+          image-ref: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }}
           format: 'spdx-json'
           output: 'sbom-${{ env.SERVICE_NAME }}.spdx.json'
 
