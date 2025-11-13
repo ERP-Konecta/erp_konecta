@@ -147,7 +147,7 @@ jobs:
      
        # Build Docker image for Authentication-service
       - name: Build Docker image
-        run: docker build -t ${{ vars.DOCKER_HUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }} ./${{ env.SERVICE_NAME }}
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }} ./${{ env.SERVICE_NAME }}
         working-directory: ./${{ env.SERVICE_NAME }}
           
       # Trivy Security Scan (SCA)
@@ -158,7 +158,7 @@ jobs:
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@0.20.0
         with:
-         image-ref: 'erp-auth:latest'
+         image-ref: ${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }}
          format: 'json'
          exit-code: '0'
          output: "${{ env.SERVICE_NAME }}/reports/trivy_report.json"
