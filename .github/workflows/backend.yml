@@ -8,7 +8,7 @@ on:
 
   workflow_dispatch:
 env:
-  SERVICE_NAME: Authentication-service
+  SERVICE_NAME: authentication-service
 
 jobs:
 
