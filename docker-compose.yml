@@ -1,6 +1,69 @@
 version: '3.8'
 
 services:
+
+  postgres:
+    image: postgres:15
+    container_name: erp_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: gp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - erp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  backend:
+    build: ./authentication-service
+    container_name: erp_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/gp
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 123
+      SERVER_PORT: 8080
+    ports:
+      - "8080:8080"
+    networks:
+      - erp-network
+    healthcheck:
+        test: ["CMD", "sh", "-c", "curl -f http://localhost:8080 || exit 0"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+
+
+  frontend:
+    build: ./Frontend
+    container_name: erp_frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      API_URL: http://backend:8080
+    ports:
+      - "80:80"
+    networks:
+      - erp-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost/ || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
   mongodb:
     image: mongo:7.0
     container_name: mongodb
@@ -9,7 +72,7 @@ services:
       - mongodb-data:/data/db
       - mongodb-config:/data/configdb
     networks:
-      - doc-processing-network
+      - erp-network
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
@@ -27,7 +90,7 @@ services:
       - MONGO_URI=mongodb://mongodb:27017/invoice_reader_db
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     networks:
-      - doc-processing-network
+      - erp-network
     depends_on:
       mongodb:
         condition: service_healthy
@@ -48,7 +111,7 @@ services:
       - MONGO_URI=mongodb://mongodb:27017/invoice_reader_db
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     networks:
-      - doc-processing-network
+      - erp-network
     depends_on:
       mongodb:
         condition: service_healthy
@@ -68,7 +131,7 @@ services:
     environment:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     networks:
-      - doc-processing-network
+      - erp-network
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:7860/ || exit 1"]
       interval: 30s
@@ -83,7 +146,7 @@ services:
     ports:
       - "7890:7860"
     networks:
-      - doc-processing-network
+      - erp-network
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:7860/ || exit 1"]
       interval: 30s
@@ -96,7 +159,9 @@ volumes:
     driver: local
   mongodb-config:
     driver: local
+  pg_data:
+    driver: local
 
 networks:
-  doc-processing-network:
+  erp-network:
     driver: bridge
