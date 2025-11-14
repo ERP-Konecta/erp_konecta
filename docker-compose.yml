@@ -3,7 +3,7 @@ version: '3.8'
 services:
   mongodb:
     image: mongo:7.0
-    container_name: doc-processing-mongodb
+    container_name: mongodb
     restart: unless-stopped
     volumes:
       - mongodb-data:/data/db
@@ -18,7 +18,7 @@ services:
       start_period: 40s
 
   doc-processing:
-    image: aliashmawy/doc-processing:52
+    image: aliashmawy/doc-processing:50
     container_name: doc-processing-app
     restart: unless-stopped
     ports:
@@ -67,6 +67,21 @@ services:
       - "7880:7860"
     environment:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+    networks:
+      - doc-processing-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:7860/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  tft-forecast:
+    image: aliashmawy/tft-revenue-forecast:latest
+    container_name: tft-forecast-app
+    restart: unless-stopped
+    ports:
+      - "7890:7860"
     networks:
       - doc-processing-network
     healthcheck:
