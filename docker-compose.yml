@@ -24,7 +24,7 @@ services:
 
 
   backend:
-    build: ./authentication-service
+    build: aliashmawy/authentication-service:latest
     container_name: erp_backend
     restart: unless-stopped
     depends_on:
@@ -47,7 +47,7 @@ services:
 
 
   frontend:
-    build: ./Frontend
+    build: aliashmawy/Frontend:latest
     container_name: erp_frontend
     restart: unless-stopped
     depends_on:
