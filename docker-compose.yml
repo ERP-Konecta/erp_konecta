@@ -47,7 +47,7 @@ services:
 
 
   frontend:
-    build: aliashmawy/Frontend:latest
+    build: aliashmawy/frontend:latest
     container_name: erp_frontend
     restart: unless-stopped
     depends_on:
