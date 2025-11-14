@@ -1,0 +1,29 @@
+# Node dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Environment and config files
+.env
+*.env
+
+# Git
+.git
+.gitignore
+
+# Build cache and temp
+dist
+coverage
+tmp
+*.swp
+
+# IDE files
+.vscode
+.idea
+*.iml
+
+# Sonar, reports, and Docker files
+.sonar
+.scannerwork
+Dockerfile
+docker-compose.yml
