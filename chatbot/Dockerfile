@@ -33,7 +33,8 @@ COPY --from=builder --chown=app:app /app /app
 
 
 # Ensure proper permissions for copied files
-RUN chmod -R 755 /app
+# Remove all write permissions from the copied files
+RUN chmod -R a-w /app
 
 
 EXPOSE 7860
