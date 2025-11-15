@@ -64,6 +64,8 @@ services:
       interval: 20s
       timeout: 10s
       retries: 5
+
+
   mongodb:
     image: mongo:7.0
     container_name: mongodb
@@ -100,6 +102,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+
 
   chatbot:
     image: aliashmawy/chatbot:29
@@ -149,6 +152,21 @@ services:
       - erp-network
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:7860/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  prophet-forecast:
+    image: aliashmawy/prophet-forecast:latest
+    container_name: prophet-forecast-app
+    restart: unless-stopped
+    ports:
+      - "7900:7860"
+    networks:
+      - doc-processing-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:7860/docs || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
