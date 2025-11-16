@@ -12,9 +12,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv pip install --system --no-cache -r pyproject.toml
 
 # Copy application files
-COPY app.py ./
-COPY *.joblib ./
-COPY combined.csv ./
+COPY app.py .
 
 # Create non-root user
 RUN groupadd -r app && useradd -r -g app app && \
