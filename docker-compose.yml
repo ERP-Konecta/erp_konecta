@@ -18,7 +18,7 @@ services:
       start_period: 40s
 
   doc-processing:
-    image: aliashmawy/doc-processing:53
+    image: aliashmawy/doc-processing:54
     container_name: doc-processing-app
     restart: unless-stopped
     ports:
@@ -39,7 +39,7 @@ services:
       start_period: 60s
 
   chatbot:
-    image: aliashmawy/chatbot:32
+    image: aliashmawy/chatbot:33
     container_name: chatbot-app
     restart: unless-stopped
     ports:
