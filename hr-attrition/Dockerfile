@@ -1,45 +1,30 @@
-FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS builder
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Replace hardlinking with copying to avoid issues on filesystems that do not support hardlinks
-ENV UV_LINK_MODE=copy
+# Install uv for faster dependency installation
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Copy dependency files only (for caching)
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    uv sync --locked --no-install-project --no-editable
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
 
-# Copy full project source
-COPY . /app
+# Install dependencies using uv (much faster than pip)
+RUN uv pip install --system --no-cache -r pyproject.toml
 
-# Install project into .venv
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-editable
+# Copy application files
+COPY src/ ./src/
+COPY *.joblib ./
+COPY combined.csv ./
 
-
-FROM python:3.9-alpine
-
-WORKDIR /app
-
-RUN apk add --no-cache \
-    libstdc++ \
-    libgomp \
-    libgfortran
-
-RUN addgroup -S app && adduser -S -G app app
-
-# Copy app and .venv from builder
-COPY --from=builder --chown=app:app /app /app
-
-# Ensure proper permissions for copied files
-RUN chmod -R 755 /app
+# Create non-root user
+RUN groupadd -r app && useradd -r -g app app && \
+    chown -R app:app /app
 
 EXPOSE 7860
 
-ENV PATH="/app/.venv/bin:$PATH"
-ENV PYTHONPATH=/app/src
+ENV PYTHONPATH=/app/src \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 USER app
 
