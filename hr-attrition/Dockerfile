@@ -8,11 +8,11 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 # Copy dependency files
 COPY pyproject.toml uv.lock ./
 
-# Install dependencies using uv (much faster than pip)
+# Install dependencies using uv
 RUN uv pip install --system --no-cache -r pyproject.toml
 
 # Copy application files
-COPY src/ ./src/
+COPY app.py ./
 COPY *.joblib ./
 COPY combined.csv ./
 
@@ -22,10 +22,9 @@ RUN groupadd -r app && useradd -r -g app app && \
 
 EXPOSE 7860
 
-ENV PYTHONPATH=/app/src \
-    PYTHONUNBUFFERED=1 \
+ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
 USER app
 
-CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]

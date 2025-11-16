@@ -1,22 +1,30 @@
-# Use a lightweight base image
-FROM python:3.10-slim
+FROM python:3.11-slim
 
-# Set environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
-# Set work directory
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install uv for faster dependency installation
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Copy app files
-COPY . .
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
 
-# Expose port
+# Install dependencies using uv
+RUN uv pip install --system --no-cache -r pyproject.toml
+
+# Copy application files
+COPY app.py ./
+COPY *.joblib ./
+COPY combined.csv ./
+
+# Create non-root user
+RUN groupadd -r app && useradd -r -g app app && \
+    chown -R app:app /app
+
 EXPOSE 7860
 
-# Run the FastAPI app with Uvicorn
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+USER app
+
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
