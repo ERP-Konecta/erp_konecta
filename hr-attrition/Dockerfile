@@ -19,7 +19,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-editable
 
 
-FROM python:3.11-alpine
+FROM python:3.9-alpine
 
 WORKDIR /app
 
