@@ -39,7 +39,7 @@ services:
       start_period: 60s
 
   chatbot:
-    image: aliashmawy/chatbot:31
+    image: aliashmawy/chatbot:32
     container_name: chatbot-app
     restart: unless-stopped
     ports:
