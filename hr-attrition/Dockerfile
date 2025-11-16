@@ -1,18 +1,46 @@
-# Use the official Python image
-FROM python:3.9-slim
+FROM ghcr.io/astral-sh/uv:python3.11-bookworm-slim AS builder
 
-# Set the working directory
-WORKDIR /code
+WORKDIR /app
 
-# Copy the requirements file and install dependencies
-COPY ./requirements.txt /code/requirements.txt
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+# Replace hardlinking with copying to avoid issues on filesystems that do not support hardlinks
+ENV UV_LINK_MODE=copy
 
-# Copy all the application files from the root of the repo to /code
-COPY . /code/
+# Copy dependency files only (for caching)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    uv sync --locked --no-install-project --no-editable
 
-# Expose the port the app will run on (Hugging Face uses 7860)
+# Copy full project source
+COPY . /app
+
+# Install project into .venv
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-editable
+
+
+FROM python:3.11-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache \
+    libstdc++ \
+    libgomp \
+    libgfortran
+
+RUN addgroup -S app && adduser -S -G app app
+
+# Copy app and .venv from builder
+COPY --from=builder --chown=app:app /app /app
+
+# Ensure proper permissions for copied files
+RUN chmod -R 755 /app
+
 EXPOSE 7860
 
-# Command to run the application (file is app.py, FastAPI instance is app)
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH=/app/src
+
+USER app
+
+CMD ["uvicorn", "src.app:app", "--host", "0.0.0.0", "--port", "7860"]
