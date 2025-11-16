@@ -12,9 +12,7 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     && rm -rf /var/lib/apt/lists/*
 
-# Download the latest installer, install it and then remove it
-ADD https://astral.sh/uv/install.sh /install.sh
-RUN chmod -R 655 /install.sh && /install.sh && rm /install.sh
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Set up the UV environment path correctly
 ENV PATH="/root/.local/bin:$PATH"
