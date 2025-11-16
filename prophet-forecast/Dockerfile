@@ -13,8 +13,7 @@ RUN uv pip install --system --no-cache -r pyproject.toml
 
 # Copy application files
 COPY app.py ./
-COPY *.joblib ./
-COPY combined.csv ./
+COPY financial_dataset.csv ./
 
 # Create non-root user
 RUN groupadd -r app && useradd -r -g app app && \
