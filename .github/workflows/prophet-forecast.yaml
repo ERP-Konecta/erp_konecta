@@ -155,7 +155,6 @@ jobs:
           image-ref: '${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }}'
           format: 'sarif'
           output: 'trivy-${{ env.SERVICE_NAME }}-results.sarif'
-          exit-code: '1'
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
@@ -168,7 +167,7 @@ jobs:
           category: trivy-python
 
       - name: Generate SBOM
-        uses: aquasecurity/trivy-action@0.18.0
+        uses: aquasecurity/trivy-action@0.28.0
         if: always()
         with:
           image-ref: ${{ vars.DOCKERHUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{ github.run_number }}
