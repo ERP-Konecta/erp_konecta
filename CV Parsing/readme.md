@@ -9,3 +9,5 @@ Key Integration Points:
 The request must be sent as multipart/form-data with fields jd_file and cv_files.
 
 The output match_score is a float percentage (0.00-100.00). Please display this value followed by a % sign on the front-end."
+
+Note: I have uploaded for you 2 CVs and one JD file (Job Description) file for you incase you need to test using them.
