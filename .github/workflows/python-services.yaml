@@ -67,8 +67,8 @@ jobs:
             echo "Detected services: $SERVICES"
           fi
 
-  gitleaks:
-    name: Secret Detection - ${{ matrix.service }}
+  ci-cd-pipeline:
+    name: CI/CD Pipeline - ${{ matrix.service }}
     runs-on: ubuntu-latest
     needs: detect-changes
     if: needs.detect-changes.outputs.has_changes == 'true'
@@ -76,12 +76,18 @@ jobs:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.services) }}
       fail-fast: false
+    permissions:
+      contents: write
+      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # ============================================
+      # SECURITY SCANNING - GitLeaks
+      # ============================================
       - name: Run GitLeaks Scan
         uses: gitleaks/gitleaks-action@v2
         env:
@@ -90,20 +96,9 @@ jobs:
           GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
           GITLEAKS_SCAN_PATH: "${{ matrix.service }}"
 
-  sonarqube:
-    name: SAST - ${{ matrix.service }}
-    runs-on: ubuntu-latest
-    needs: detect-changes
-    if: needs.detect-changes.outputs.has_changes == 'true'
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
-      fail-fast: false
-    steps:
-      - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
+      # ============================================
+      # STATIC APPLICATION SECURITY TESTING (SAST)
+      # ============================================
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
@@ -133,22 +128,9 @@ jobs:
         with:
           scanMetadataReportFile: "${{ matrix.service }}/.scannerwork/report-task.txt"
 
-  depchecktest:
-    name: Dependency Check - ${{ matrix.service }}
-    runs-on: ubuntu-latest
-    needs: detect-changes
-    if: needs.detect-changes.outputs.has_changes == 'true'
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
-      fail-fast: false
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      # ============================================
+      # DEPENDENCY VULNERABILITY SCANNING
+      # ============================================
       - name: Cache Dependency-Check database
         uses: actions/cache@v4
         with:
@@ -177,29 +159,16 @@ jobs:
           name: dependency-check-report-${{ matrix.service }}
           path: ${{ github.workspace }}/reports-${{ matrix.service }}
 
-      - name: Upload SARIF to GitHub Security
+      - name: Upload Dependency-Check SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: reports-${{ matrix.service }}/dependency-check-report.sarif
           category: dependency-check-${{ matrix.service }}
 
-  build-scan:
-    name: Build & Scan - ${{ matrix.service }}
-    runs-on: ubuntu-latest
-    needs: [detect-changes, gitleaks, sonarqube, depchecktest]
-    if: needs.detect-changes.outputs.has_changes == 'true'
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
-      fail-fast: false
-    permissions:
-      contents: read
-      security-events: write
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      # ============================================
+      # BUILD & CONTAINER SCANNING
+      # ============================================
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
@@ -224,7 +193,7 @@ jobs:
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
 
-      - name: Upload SARIF
+      - name: Upload Trivy SARIF
         if: always()
         uses: github/codeql-action/upload-sarif@v4
         with:
@@ -247,6 +216,9 @@ jobs:
           path: sbom-${{ matrix.service }}.spdx.json
           retention-days: 90
 
+      # ============================================
+      # PUSH TO REGISTRY
+      # ============================================
       - name: Log in to DockerHub
         if: always()
         run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login --username "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
@@ -255,21 +227,9 @@ jobs:
         if: always()
         run: docker push ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.service }}:${{ github.run_number }}
 
-  deploy:
-    name: Deploy - ${{ matrix.service }}
-    runs-on: ubuntu-latest
-    needs: [detect-changes, build-scan]
-    if: needs.detect-changes.outputs.has_changes == 'true'
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
-      fail-fast: false
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      # ============================================
+      # DEPLOYMENT
+      # ============================================
       - name: Change image tag and Push changes
         run: |
           git config user.name "github-actions[bot]"
@@ -297,19 +257,9 @@ jobs:
           BRANCH: ${{ github.ref_name }}
         run: scripts/deploy.sh
 
-  zap_scan:
-    name: ZAP Scan - ${{ matrix.service }}
-    runs-on: ubuntu-latest
-    needs: [detect-changes, deploy]
-    if: needs.detect-changes.outputs.has_changes == 'true'
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
-      fail-fast: false
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      # ============================================
+      # DYNAMIC APPLICATION SECURITY TESTING (DAST)
+      # ============================================
       - name: ZAP Scan
         uses: zaproxy/action-full-scan@v0.13.0
         with:
