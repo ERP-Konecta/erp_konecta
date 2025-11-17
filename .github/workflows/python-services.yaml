@@ -32,10 +32,10 @@ jobs:
         with:
           files: |
             chatbot/**
-            api/**
-            frontend/**
-            backend/**
-            worker/**
+            doc-processing/**
+            hr-attrition/**
+            prophet-forecast/**
+            tft-revenue-forecast/**
           dir_names: true
           dir_names_max_depth: 1
 
