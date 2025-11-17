@@ -35,7 +35,7 @@ jobs:
             doc_processing/**
             hr_attrition/**
             prophet_forecast/**
-            tft-revenue_forecast/**
+            tft_revenue_forecast/**
           dir_names: true
           dir_names_max_depth: 1
 
