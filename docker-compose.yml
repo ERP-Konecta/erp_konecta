@@ -77,7 +77,7 @@ services:
       start_period: 60s
 
   tft-forecast:
-    image: aliashmawy/tft-revenue-forecast:1
+    image: aliashmawy/tft-revenue-forecast:2
     container_name: tft-forecast-app
     restart: unless-stopped
     ports:
