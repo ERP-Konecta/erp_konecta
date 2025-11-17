@@ -17,8 +17,8 @@ services:
       retries: 5
       start_period: 40s
 
-  doc-processing:
-    image: aliashmawy/doc-processing:55
+  doc_processing:
+    image: aliashmawy/doc_processing:55
     container_name: doc-processing-app
     restart: unless-stopped
     ports:
@@ -59,8 +59,8 @@ services:
       retries: 3
       start_period: 60s
 
-  hr-attrition:
-    image: aliashmawy/hr-attrition:13
+  hr_attrition:
+    image: aliashmawy/hr_attrition:13
     container_name: hr-attrition-app
     restart: unless-stopped
     ports:
@@ -76,8 +76,8 @@ services:
       retries: 3
       start_period: 60s
 
-  tft-revenue-forecast:
-    image: aliashmawy/tft-revenue-forecast:2
+  tft_revenue_forecast:
+    image: aliashmawy/tft_revenue_forecast:2
     container_name: tft-forecast-app
     restart: unless-stopped
     ports:
@@ -91,8 +91,8 @@ services:
       retries: 3
       start_period: 60s
 
-  prophet-forecast:
-    image: aliashmawy/prophet-forecast:13
+  prophet_forecast:
+    image: aliashmawy/prophet_forecast:13
     container_name: prophet-forecast-app
     restart: unless-stopped
     ports:

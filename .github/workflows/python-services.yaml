@@ -32,10 +32,10 @@ jobs:
         with:
           files: |
             chatbot/**
-            doc-processing/**
-            hr-attrition/**
-            prophet-forecast/**
-            tft-revenue-forecast/**
+            doc_processing/**
+            hr_attrition/**
+            prophet_forecast/**
+            tft-revenue_forecast/**
           dir_names: true
           dir_names_max_depth: 1
 
@@ -264,6 +264,7 @@ jobs:
           GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           REPO_URL: https://github.com/${{ github.repository }}
           BRANCH: ${{ github.ref_name }}
+          SERVICE_ENV_FILE: ${{ secrets[format('{0}_ENV', matrix.service)] }}
         run: scripts/deploy.sh
 
       # ============================================
