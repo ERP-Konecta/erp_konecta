@@ -96,6 +96,9 @@ jobs:
           GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
           GITLEAKS_SCAN_PATH: "${{ matrix.service }}"
 
+      - name: debug
+        run: ls -la
+
       - name: Upload GitLeaks report
         if: always()
         uses: actions/upload-artifact@v4
