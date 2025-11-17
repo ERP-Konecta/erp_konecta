@@ -1,5 +1,5 @@
 ## ------------------------------- Builder Stage ------------------------------ ## 
-FROM python:3.13-bookworm AS builder
+FROM python:3.10-bookworm AS builder
 
 WORKDIR /app
 
