@@ -261,7 +261,6 @@ jobs:
           EC2_USER: ${{ secrets.EC2_USER }}
           DOCKERHUB_USERNAME: ${{ vars.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
           REPO_URL: https://github.com/${{ github.repository }}
           BRANCH: ${{ github.ref_name }}
           SERVICE_ENV_FILE: ${{ secrets[format('{0}_ENV', matrix.service)] }}
