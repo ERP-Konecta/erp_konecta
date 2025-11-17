@@ -34,6 +34,7 @@ jobs:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
           GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
           GITLEAKS_SCAN_PATH: "${{ env.SERVICE_NAME }}"
+          GITLEAKS_ARTIFACT_NAME: "gitleaks-report-${{ matrix.service }}"
 
   sonarqube:
     name: Inspect - SAST
