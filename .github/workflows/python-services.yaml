@@ -43,8 +43,10 @@ jobs:
         id: set-services
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ inputs.services }}" ]; then
+            # Manual trigger: convert comma-separated to JSON array
             SERVICES=$(echo "${{ inputs.services }}" | jq -Rc 'split(",") | map(gsub("^\\s+|\\s+$";""))')
           else
+            # Auto-detect from changed directories
             DIRS="${{ steps.changed-dirs.outputs.all_changed_files }}"
             if [ -z "$DIRS" ]; then
               SERVICES="[]"
@@ -52,17 +54,21 @@ jobs:
               SERVICES=$(echo "$DIRS" | jq -Rc 'split(" ") | map(select(length > 0))')
             fi
           fi
-
+          
+          # Check if we have any services
           COUNT=$(echo "$SERVICES" | jq 'length')
           if [ "$COUNT" -eq 0 ]; then
             echo "has_changes=false" >> $GITHUB_OUTPUT
             echo "services=[]" >> $GITHUB_OUTPUT
+            echo "No service changes detected"
           else
             echo "has_changes=true" >> $GITHUB_OUTPUT
             echo "services=$SERVICES" >> $GITHUB_OUTPUT
+            echo "Detected services: $SERVICES"
+          fi
 
-  service-pipeline:
-    name: CI/CD Pipeline - ${{ matrix.service }}
+  gitleaks:
+    name: Secret Detection - ${{ matrix.service }}
     runs-on: ubuntu-latest
     needs: detect-changes
     if: needs.detect-changes.outputs.has_changes == 'true'
@@ -70,9 +76,6 @@ jobs:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.services) }}
       fail-fast: false
-    permissions:
-      contents: write
-      security-events: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -87,6 +90,16 @@ jobs:
           GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
           GITLEAKS_SCAN_PATH: "${{ matrix.service }}"
 
+  sonarqube:
+    name: SAST - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+      fail-fast: false
+    steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
@@ -119,6 +132,22 @@ jobs:
         timeout-minutes: 5
         with:
           scanMetadataReportFile: "${{ matrix.service }}/.scannerwork/report-task.txt"
+
+  depchecktest:
+    name: Dependency Check - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+      fail-fast: false
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Cache Dependency-Check database
         uses: actions/cache@v4
@@ -154,6 +183,22 @@ jobs:
         with:
           sarif_file: reports-${{ matrix.service }}/dependency-check-report.sarif
           category: dependency-check-${{ matrix.service }}
+
+  build-scan:
+    name: Build & Scan - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: [detect-changes, gitleaks, sonarqube, depchecktest]
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+      fail-fast: false
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Install uv
         uses: astral-sh/setup-uv@v6
@@ -210,6 +255,21 @@ jobs:
         if: always()
         run: docker push ${{ vars.DOCKERHUB_USERNAME }}/${{ matrix.service }}:${{ github.run_number }}
 
+  deploy:
+    name: Deploy - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build-scan]
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+      fail-fast: false
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Change image tag and Push changes
         run: |
           git config user.name "github-actions[bot]"
@@ -236,6 +296,19 @@ jobs:
           REPO_URL: https://github.com/${{ github.repository }}
           BRANCH: ${{ github.ref_name }}
         run: scripts/deploy.sh
+
+  zap_scan:
+    name: ZAP Scan - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: [detect-changes, deploy]
+    if: needs.detect-changes.outputs.has_changes == 'true'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.services) }}
+      fail-fast: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: ZAP Scan
         uses: zaproxy/action-full-scan@v0.13.0
