@@ -96,6 +96,14 @@ jobs:
           GITLEAKS_NOTIFY_USER_LIST: ${{ secrets.GITLEAKS_NOTIFY_USER_LIST }}
           GITLEAKS_SCAN_PATH: "${{ matrix.service }}"
 
+      - name: Upload GitLeaks report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report-${{ matrix.service }}
+          path: gitleaks-results.sarif
+          if-no-files-found: warn
+
       # ============================================
       # STATIC APPLICATION SECURITY TESTING (SAST)
       # ============================================
