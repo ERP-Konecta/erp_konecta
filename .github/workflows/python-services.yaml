@@ -44,14 +44,14 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ inputs.services }}" ]; then
             # Manual trigger: convert comma-separated to JSON array
-            SERVICES=$(echo "${{ inputs.services }}" | jq -R 'split(",") | map(gsub("^\\s+|\\s+$";""))')
+            SERVICES=$(echo "${{ inputs.services }}" | jq -Rc 'split(",") | map(gsub("^\\s+|\\s+$";""))')
           else
             # Auto-detect from changed directories
             DIRS="${{ steps.changed-dirs.outputs.all_changed_files }}"
             if [ -z "$DIRS" ]; then
               SERVICES="[]"
             else
-              SERVICES=$(echo "$DIRS" | jq -R 'split(" ") | map(select(length > 0))')
+              SERVICES=$(echo "$DIRS" | jq -Rc 'split(" ") | map(select(length > 0))')
             fi
           fi
           
