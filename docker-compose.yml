@@ -76,7 +76,7 @@ services:
       retries: 3
       start_period: 60s
 
-  tft-forecast:
+  tft-revenue-forecast:
     image: aliashmawy/tft-revenue-forecast:2
     container_name: tft-forecast-app
     restart: unless-stopped
