@@ -60,7 +60,7 @@ services:
       start_period: 60s
 
   hr-attrition:
-    image: aliashmawy/hr-attrition:11
+    image: aliashmawy/hr-attrition:13
     container_name: hr-attrition-app
     restart: unless-stopped
     ports:
