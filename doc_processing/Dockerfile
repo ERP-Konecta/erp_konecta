@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     poppler-utils \
     && rm -rf /var/lib/apt/lists/* \
-    && useradd --create-home appuser
+    && useradd -m appuser
 
 USER appuser
 

@@ -16,7 +16,7 @@ COPY app.py ./
 COPY financial_dataset.csv ./
 
 # Create non-root user
-RUN groupadd -r app && useradd -r -g app app && \
+RUN useradd -r -U -m app && \
     chown -R app:app /app
 
 EXPOSE 7860

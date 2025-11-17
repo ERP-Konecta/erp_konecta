@@ -15,7 +15,7 @@ RUN uv pip install --system --no-cache -r pyproject.toml
 COPY app.py .
 
 # Create non-root user
-RUN groupadd -r app && useradd -r -g app app && \
+RUN useradd -r -U app && \
     chown -R app:app /app
 
 EXPOSE 7860

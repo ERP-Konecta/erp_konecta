@@ -17,7 +17,7 @@ COPY financial_dataset.csv ./
 COPY tft-best.ckpt ./
 
 # Create non-root user
-RUN groupadd -r app && useradd -r -g app app && \
+RUN useradd -r -U app && \
     chown -R app:app /app
 
 EXPOSE 7860
