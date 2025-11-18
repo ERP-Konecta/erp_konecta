@@ -1,47 +1,28 @@
-FROM ghcr.io/astral-sh/uv:python3.10-trixie-slim AS builder
-
-
-WORKDIR /app
-
-
-#Replace hardlinking with copying to avoid issues on filesystems that do not support hardlinks
-ENV UV_LINK_MODE=copy
-
-# Copy dependency files only (for caching)
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    uv sync --locked --no-install-project --no-editable
-
-# Copy full project source
-COPY . /app
-
-# Install project into .venv
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-editable
-
-
 FROM python:3.10-slim
 
 WORKDIR /app
 
+# Install uv for faster dependency installation
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-RUN addgroup --system app && adduser --system --ingroup app app
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
 
-# Copy app and .venv from builder
-COPY --from=builder --chown=app:app /app /app
+# Install dependencies using uv
+RUN uv pip install --system --no-cache -r pyproject.toml
 
+# Copy application files
+COPY app.py .
 
-# Ensure proper permissions for copied files
-RUN chmod -R 755 /app
-
+# Create non-root user
+RUN useradd -r -U app && \
+    chown -R app:app /app
 
 EXPOSE 7860
 
-ENV PATH="/app/.venv/bin:$PATH"
-ENV PYTHONPATH=/app/src
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 USER app
 
-
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:7860", "--timeout", "120", "src.erp_chatbot_api:app"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:7860", "--timeout", "120", "app:app"]

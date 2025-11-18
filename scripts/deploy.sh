@@ -36,6 +36,14 @@ fi
 
 echo cat docker-compose.yml
 
+# Create/Update environment file for the service
+if [ -n "${SERVICE_ENV_FILE}" ]; then
+  echo "Creating environment file for ${SERVICE_NAME}..."
+  echo "${SERVICE_ENV_FILE}" > ${SERVICE_NAME}/.env
+  echo "Environment file created at ${SERVICE_NAME}/.env"
+else
+  echo "Warning: No environment file provided for ${SERVICE_NAME}"
+fi
 
 # Docker login
 echo "${DOCKERHUB_TOKEN}" | docker login --username "${DOCKERHUB_USERNAME}" --password-stdin
