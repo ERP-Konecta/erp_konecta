@@ -1,0 +1,59 @@
+FROM ghcr.io/astral-sh/uv:python3.10-trixie-slim AS builder
+
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libpoppler-cpp-dev \
+    libleptonica-dev \
+    libtesseract-dev \
+    poppler-utils \
+    tesseract-ocr \
+    && rm -rf /var/lib/apt/lists/*
+
+
+# Copy dependency files only (for caching)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    uv sync --locked --no-install-project --no-editable
+
+# Copy full project source
+COPY . /app
+
+# Install project into .venv
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-editable
+
+
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Install only runtime dependencies (removed -dev packages)
+RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/* \
+    && addgroup --system app && adduser --system --ingroup app app
+
+
+# Copy app and .venv from builder
+COPY --from=builder --chown=app:app /app /app
+
+
+# Ensure proper permissions for copied files
+RUN chmod -R 755 /app
+
+
+EXPOSE 7860
+
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH=/app/src
+
+USER app
+
+# Start the Flask app via gunicorn
+# Increased timeout for document processing workloads
+CMD ["sh", "-c", "gunicorn -w 4 -b 0.0.0.0:7860 --timeout 120 --access-logfile - src.document_processor_flask_api:app"]
