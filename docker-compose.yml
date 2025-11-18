@@ -145,7 +145,7 @@ services:
       start_period: 60s
 
   tft_revenue_forecast:
-    image: aliashmawy/tft_revenue_forecast:21
+    image: aliashmawy/tft_revenue_forecast:17
     container_name: tft-forecast-app
     restart: unless-stopped
     ports:
