@@ -160,7 +160,7 @@ services:
       start_period: 60s
 
   prophet_forecast:
-    image: aliashmawy/prophet_forecast:16
+    image: aliashmawy/prophet_forecast:40
     container_name: prophet-forecast-app
     restart: unless-stopped
     ports:
