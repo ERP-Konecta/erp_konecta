@@ -27,4 +27,3 @@ ENV PYTHONUNBUFFERED=1 \
 USER app
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
->>>>>>> ai-team-work
