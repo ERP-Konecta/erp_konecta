@@ -173,7 +173,7 @@ services:
       start_period: 60s
 
   cv_parsing:
-    image: aliashmawy/cv_parsing:42
+    image: aliashmawy/cv_parsing:44
     container_name: cv-parsing-app
     restart: unless-stopped
     ports:
