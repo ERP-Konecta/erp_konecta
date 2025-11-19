@@ -46,7 +46,7 @@ else
 fi
 
 # Docker login
-echo "${DOCKERHUB_TOKEN}" | docker login --username "${DOCKERHUB_USERNAME}" --password-stdin
+echo "${DOCKER_HUB_TOKEN}" | docker login --username "${DOCKER_HUB_USERNAME}" --password-stdin
 
 
 # Pull new images first
