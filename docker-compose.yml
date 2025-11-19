@@ -89,7 +89,7 @@ services:
       retries: 3
 
   frontend:
-    build: ./Frontend
+    build: ./frontend
     container_name: erp_frontend
     restart: unless-stopped
     depends_on:
