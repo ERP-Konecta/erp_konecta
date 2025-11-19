@@ -81,7 +81,7 @@ services:
       start_period: 40s
 
   doc_processing:
-    image: aliashmawy/doc_processing:16
+    image: aliashmawy/doc_processing:15
     container_name: doc-processing-app
     restart: unless-stopped
     ports:
