@@ -53,7 +53,8 @@ echo "${DOCKER_HUB_TOKEN}" | docker login --username "${DOCKER_HUB_USERNAME}" --
 docker compose pull
 
 # Recreate only the containers whose image or config changed (ignore recreating dependant services)
-docker compose up -d --no-deps --build ${SERVICE_NAME}
+docker compose up -d --no-deps --build --force-recreate --remove-orphans ${SERVICE_NAME}
+
 
 # Optionally clean up old images
 docker image prune -af
