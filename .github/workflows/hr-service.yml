@@ -1,10 +1,10 @@
 name: hr-service CI/CD
 
 on:
-  push:
-    branches: [ "dev"]
-  pull_request:
-    branches: [ "main" ]
+  #push:
+    #branches: [ "dev"]
+  #pull_request:
+    #branches: [ "main" ]
 
   workflow_dispatch:
 env:
