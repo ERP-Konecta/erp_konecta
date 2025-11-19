@@ -1,19 +1,29 @@
-# Start from a slim Python image
 FROM python:3.10-slim
 
-# Set working directory
 WORKDIR /app
 
-# Copy and install dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install uv for faster dependency installation
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Copy your application files (main.py, utils.py, etc.)
-COPY . .
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
 
-# Expose the port (Hugging Face Spaces often uses 7860 for default apps)
+# Install dependencies using uv
+RUN uv pip install --system --no-cache -r pyproject.toml
+
+# Copy application files
+COPY main.py .
+
+# Create non-root user
+RUN useradd -r -U app && \
+    chown -R app:app /app
+
 EXPOSE 7860
 
-# Command to run the Uvicorn server (which hosts the FastAPI app)
-# Assuming your FastAPI app instance is named 'app' in main.py
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+USER app
+
+# Use uvicorn for FastAPI instead of gunicorn
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860", "--workers", "4"]
