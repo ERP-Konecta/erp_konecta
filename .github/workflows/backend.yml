@@ -217,8 +217,8 @@ jobs:
           git pull origin ${{ github.ref_name }}
           sed -i "s|${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.SERVICE_NAME }}:.*|${{ secrets.DOCKER_HUB_USERNAME }}/${{ env.SERVICE_NAME }}:${{github.run_number}}|g" docker-compose.yml
           git add docker-compose.yml
-          git commit -m "Update ${{ env.SERVICE_NAME }} tag to ${{ github.run_number }} in docker-compose.yml"
-          git push
+          git commit -m "Update authentication-service tag to 162 in docker-compose.yml" || echo "No changes to commit"
+          git push || echo "Nothing to push"
  
       - name: Make deploy script executable
         run: chmod +x scripts/deploy.sh
