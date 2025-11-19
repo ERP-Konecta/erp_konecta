@@ -22,7 +22,7 @@ services:
       timeout: 5s
       retries: 5
 
-  backend:
+  authentication-service:
     build: ./authentication-service
     container_name: erp_backend
     restart: unless-stopped
