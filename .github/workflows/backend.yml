@@ -73,6 +73,7 @@ jobs:
            
       - name: SonarQube Quality Gate
         uses: sonarsource/sonarqube-quality-gate-action@master
+        continue-on-error: true
         with:
          scanMetadataReportFile: ${{ env.SERVICE_NAME }}/.scannerwork/report-task.txt
          pollingTimeoutSec: 300

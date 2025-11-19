@@ -28,11 +28,6 @@ jobs:
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
           GITLEAKS_SCAN_PATH: "${{ env.SERVICE_NAME }}"
 
-      - name: Save Gitleaks report to reports folder
-        run: |
-             mkdir -p ${{ env.SERVICE_NAME }}/reports
-             cp gitleaks-report.json ${{ env.SERVICE_NAME }}/reports/gitleaks-report.json
-
 
   sonarqube:
     name: Inspect - SAST
