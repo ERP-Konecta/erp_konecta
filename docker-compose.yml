@@ -93,7 +93,7 @@ services:
     container_name: erp_frontend
     restart: unless-stopped
     depends_on:
-      backend:
+      authentication-service:
         condition: service_healthy
     environment:
       API_URL: http://backend:8080
