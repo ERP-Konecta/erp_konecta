@@ -39,7 +39,7 @@ services:
     networks:
       - erp-network
     healthcheck:
-      test: ["CMD", "sh", "-c", "curl -I http://localhost:8080 | grep '200\\|401' || exit 1"]
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/actuator/health | grep -E '200|401' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -96,7 +96,7 @@ services:
       authentication-service:
         condition: service_healthy
     environment:
-      API_URL: http://backend:8080
+      API_URL: http://authentication-service:8080
     ports:
       - "80:80"
     networks:
