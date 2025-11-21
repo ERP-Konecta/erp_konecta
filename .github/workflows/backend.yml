@@ -1,12 +1,12 @@
 name: Backend CI/CD
 
 on:
-  #push:
-    #branches: [ "dev"]
-  #pull_request:
-    #branches: [ "main" ]
+   push:
+     branches: [ "dev"]
+   pull_request:
+     branches: [ "main" ]
 
-  workflow_dispatch:
+   workflow_dispatch:
 env:
   SERVICE_NAME: authentication-service
 
