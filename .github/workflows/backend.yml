@@ -1,12 +1,14 @@
 name: Backend CI/CD
 
 on:
-   push:
-     branches: [ "dev"]
-   pull_request:
-     branches: [ "main" ]
-
-   workflow_dispatch:
+  push:
+    branches: ["dev"]
+    paths:
+      - 'authentication-service/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
 env:
   SERVICE_NAME: authentication-service
 

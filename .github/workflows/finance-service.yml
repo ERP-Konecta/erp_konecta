@@ -2,10 +2,12 @@ name: finance-service CI/CD
 
 on:
   push:
-    branches: [ "dev"]
+    branches: ["dev"]
+    paths:
+      - 'finance-service/**'
+      - '.github/workflows/finance-service.yml'
   pull_request:
-    branches: [ "main" ]
-
+    branches: ["main"]
   workflow_dispatch:
 env:
   SERVICE_NAME: finance-service

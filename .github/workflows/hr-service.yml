@@ -2,10 +2,12 @@ name: hr-service CI/CD
 
 on:
   push:
-    branches: [ "dev"]
+    branches: ["dev"]
+    paths:
+      - 'hr-service/**'
+      - '.github/workflows/hr-service.yml'
   pull_request:
-    branches: [ "main" ]
-
+    branches: ["main"]
   workflow_dispatch:
 env:
   SERVICE_NAME: hr-service
