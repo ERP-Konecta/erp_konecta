@@ -3,6 +3,13 @@ name: python-services CI/CD
 on:
   push:
     branches: [ai-team-work, main]
+    paths: 
+      - 'chatbot/**'
+      - 'doc_processing/**'
+      - 'hr_attrition/**'
+      - 'prophet_forecast/**'
+      - 'tft_revenue_forecast/**'
+      - 'cv_parsing/**'
   pull_request:
     branches: [main]
   workflow_dispatch:
