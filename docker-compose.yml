@@ -131,7 +131,7 @@ services:
       timeout: 10s
       retries: 5
 
-  # ----------------- Extra Services -----------------
+  # ----------------- Python Services -----------------
   doc_processing:
     image: aliashmawy/doc_processing:15
     container_name: doc_processing_app
@@ -140,8 +140,6 @@ services:
       - "7860:7860"
     env_file:
       - ./doc_processing/.env
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/invoice_reader_db
     networks:
       - erp-network
     depends_on:
@@ -162,8 +160,6 @@ services:
       - "7870:7860"
     env_file:
       - ./chatbot/.env
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/invoice_reader_db
     networks:
       - erp-network
     depends_on:
