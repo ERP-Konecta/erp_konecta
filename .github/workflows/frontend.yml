@@ -5,7 +5,7 @@ on:
     branches: ["dev"]
     paths:
       - 'frontend/**'
-      - '.github/workflows/frontend-ci.yml'
+      - '.github/workflows/frontend.yml'
   pull_request:
     branches: ["main"]
   workflow_dispatch:
